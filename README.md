@@ -42,13 +42,11 @@ Claude Code generates the Solidity contract, tests, and deployment script — al
 
 ## The ecosystem
 
-| Repo                                                                                         | What you do there                                          | Platform |
-| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | -------- |
-| [reineira-atlas](https://github.com/ReineiraOS/reineira-atlas)                               | Run the startup — strategy, ops, growth, compliance, pitch | 0.1      |
-| **reineira-code** (this repo)                                                                | Build smart contracts — resolvers, policies, tests, deploy | 0.1      |
-| [reineira-modules-backend](https://github.com/ReineiraOS/reineira-modules-backend)           | Backend API (TypeScript, Vercel-ready, DB-agnostic)        | 0.1      |
-| [reineira-modules-app](https://github.com/ReineiraOS/reineira-modules-app)                   | Platform app (Vue 3, ZeroDev smart accounts)               | 0.1      |
-| [reineira-modules-payment-link](https://github.com/ReineiraOS/reineira-modules-payment-link) | Shareable payment link (Vue 3, RainbowKit)                 | 0.1      |
+| Repo | What you do there | Platform |
+| ---- | ----------------- | -------- |
+| [reineira-atlas](https://github.com/ReineiraOS/reineira-atlas) | Run the startup — strategy, ops, growth, compliance, pitch | 0.1 |
+| **reineira-code** (this repo) | Build smart contracts — resolvers, policies, tests, deploy | 0.1 |
+| [platform-modules](https://github.com/ReineiraOS/platform-modules) | Ship the product — backend, platform app, payment link | 0.1 |
 
 All repos declare their platform compatibility in `reineira.json`. When the platform version bumps, breaking contract interface changes may require upgrading.
 

@@ -28,7 +28,7 @@ This repo is part of the ReineiraOS builder platform:
 | ----------------------------- | ----------------------------------------------------- |
 | **reineira-code** (this repo) | Smart contracts — resolvers, policies, tests, deploy  |
 | **reineira-atlas**            | Startup OS — strategy, ops, growth, compliance, pitch |
-| **reineira-modules**          | App starters — backend, platform app, payment link    |
+| **platform-modules**          | App starters — backend, platform app, payment link    |
 
 ## Key protocol facts
 

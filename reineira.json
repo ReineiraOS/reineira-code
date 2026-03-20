@@ -18,11 +18,7 @@
   },
   "ecosystem": {
     "atlas": "https://github.com/ReineiraOS/reineira-atlas",
-    "modules": {
-      "backend": "https://github.com/ReineiraOS/reineira-modules-backend",
-      "app": "https://github.com/ReineiraOS/reineira-modules-app",
-      "payment-link": "https://github.com/ReineiraOS/reineira-modules-payment-link"
-    },
+    "modules": "https://github.com/ReineiraOS/platform-modules",
     "docs": "https://reineira.xyz/docs",
     "sdk": "https://www.npmjs.com/package/@reineira-os/sdk"
   }
