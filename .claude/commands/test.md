@@ -13,6 +13,7 @@ Steps:
 4. After all tests pass, report the results summary.
 
 Common test issues:
+
 - FHE tests need the `cofhe-hardhat-plugin` initialized — always use `before()` hook
 - Time-dependent tests need `time.increaseTo()` or `time.increase()` from hardhat-network-helpers
 - Encoding test data: use `ethers.AbiCoder.defaultAbiCoder().encode()`

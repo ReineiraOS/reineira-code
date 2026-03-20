@@ -7,6 +7,7 @@ Steps:
 3. Generate the test file in the appropriate directory (`test/resolvers/` or `test/policies/`).
 
 For **resolvers**, generate tests for:
+
 - Deployment succeeds
 - `supportsInterface` returns true for IConditionResolver
 - `onConditionSet` stores configuration correctly
@@ -16,6 +17,7 @@ For **resolvers**, generate tests for:
 - If proof-based: `submitProof` works with valid proof, reverts on replay, reverts on invalid proof
 
 For **policies**, generate tests for:
+
 - Deployment succeeds
 - `supportsInterface` returns true for IUnderwriterPolicy
 - `onPolicySet` stores configuration

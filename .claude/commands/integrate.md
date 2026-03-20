@@ -5,9 +5,10 @@ The argument should include the contract name and deployed address. If not provi
 Generate a complete TypeScript snippet showing:
 
 1. **SDK initialization**:
+
 ```typescript
-import { ReineiraSDK } from "@reineira-os/sdk";
-const sdk = ReineiraSDK.create({ network: "testnet", privateKey: process.env.PRIVATE_KEY });
+import { ReineiraSDK } from '@reineira-os/sdk';
+const sdk = ReineiraSDK.create({ network: 'testnet', privateKey: process.env.PRIVATE_KEY });
 await sdk.initialize();
 ```
 

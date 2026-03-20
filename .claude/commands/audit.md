@@ -18,6 +18,7 @@ For each item, report: PASS, FAIL (with explanation), or N/A.
 If any items FAIL, provide the specific fix with code.
 
 Also check for:
+
 - Custom error usage (prefer over require strings)
 - NatSpec documentation completeness
 - Event emission on state changes
