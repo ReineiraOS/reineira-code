@@ -1,0 +1,74 @@
+---
+description: "Use when discussing insurance policies, risk scores, disputes, FHE encryption, evaluateRisk, judge, euint64, ebool, underwriter, coverage, premium, basis points"
+globs:
+alwaysApply: false
+---
+
+# Protocol — Insurance Policies
+
+Guide for designing and implementing IUnderwriterPolicy contracts that evaluate risk and judge disputes using FHE.
+
+## The Interface
+
+```solidity
+import { euint64, ebool } from '@fhenixprotocol/cofhe-contracts/FHE.sol';
+
+interface IUnderwriterPolicy {
+    function onPolicySet(uint256 coverageId, bytes calldata data) external;
+    function evaluateRisk(uint256 escrowId, bytes calldata riskProof) external returns (euint64 riskScore);
+    function judge(uint256 coverageId, bytes calldata disputeProof) external returns (ebool valid);
+}
+```
+
+## Rules
+
+- Return values MUST be FHE-encrypted (`euint64`, `ebool`)
+- Always call `FHE.allowThis(value)` and `FHE.allow(value, msg.sender)` on return values
+- Support ERC-165: `supportsInterface(type(IUnderwriterPolicy).interfaceId)`
+- Risk score: 0-10000 basis points (100 = 1%, 500 = 5%, 1000 = 10%)
+- `judge()` receives arbitrary proof bytes — decode and validate them
+
+## FHE Pattern (MUST follow exactly)
+
+```solidity
+import { FHE, euint64, ebool } from '@fhenixprotocol/cofhe-contracts/FHE.sol';
+
+function evaluateRisk(uint256, bytes calldata) external returns (euint64) {
+    uint64 score = 500; // 5% premium
+    euint64 encrypted = FHE.asEuint64(score);
+    FHE.allowThis(encrypted); // allow this contract to use value
+    FHE.allow(encrypted, msg.sender); // allow caller (protocol) to use value
+    return encrypted;
+}
+
+function judge(uint256, bytes calldata) external returns (ebool) {
+    bool isValid = true;
+    ebool encrypted = FHE.asEbool(isValid);
+    FHE.allowThis(encrypted);
+    FHE.allow(encrypted, msg.sender);
+    return encrypted;
+}
+```
+
+## ERC-165 Support
+
+```solidity
+import { ERC165 } from '@openzeppelin/contracts/utils/introspection/ERC165.sol';
+
+function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    return interfaceId == type(IUnderwriterPolicy).interfaceId || super.supportsInterface(interfaceId);
+}
+```
+
+## Design Guidelines
+
+- Design a tiered risk model with at least 3 tiers
+- Document the basis-point scale (100 bps = 1%)
+- Design dispute validation with at least 3 rules (time window, proof presence, proof validity)
+- Use custom errors over require strings
+
+## Common Mistakes
+
+1. Forgetting `FHE.allowThis()` — transaction succeeds but value is unusable by protocol
+2. Returning plaintext instead of encrypted values — breaks the interface
+3. Not validating dispute proof structure in `judge()` — arbitrary bytes can cause unexpected behavior

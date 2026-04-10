@@ -1,0 +1,98 @@
+---
+description: "Use when discussing condition resolvers, escrow release logic, isConditionMet, onConditionSet, zkTLS, Reclaim proofs, oracles, Chainlink, UMA, multi-signature, time lock, verification sources"
+globs:
+alwaysApply: false
+---
+
+# Protocol — Condition Resolvers
+
+Guide for designing and implementing IConditionResolver contracts that control when escrows release funds.
+
+## The Interface
+
+```solidity
+interface IConditionResolver {
+    function isConditionMet(uint256 escrowId) external view returns (bool);
+    function onConditionSet(uint256 escrowId, bytes calldata data) external;
+}
+```
+
+## Rules
+
+- `isConditionMet` MUST be `view` — no state changes, no gas surprises
+- `onConditionSet` runs once — validate inputs strictly, store config
+- Support ERC-165: `supportsInterface(type(IConditionResolver).interfaceId)`
+- One escrow ID -> one condition state (replay protection)
+- Keep `isConditionMet` gas under 50k — called on every redeem attempt
+
+## Storage Pattern
+
+```solidity
+mapping(uint256 => YourConfigStruct) public configs;
+
+function onConditionSet(uint256 escrowId, bytes calldata data) external {
+    YourConfigStruct memory config = abi.decode(data, (YourConfigStruct));
+    // validate config fields
+    configs[escrowId] = config;
+}
+
+function isConditionMet(uint256 escrowId) external view returns (bool) {
+    YourConfigStruct memory config = configs[escrowId];
+    // evaluate condition against config
+    return /* condition logic */;
+}
+```
+
+## ERC-165 Support
+
+```solidity
+import { ERC165 } from '@openzeppelin/contracts/utils/introspection/ERC165.sol';
+
+function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    return interfaceId == type(IConditionResolver).interfaceId || super.supportsInterface(interfaceId);
+}
+```
+
+## Verification Data Sources
+
+### zkTLS (Reclaim Protocol)
+
+- Proves HTTPS endpoint returned expected data (PayPal, Stripe, bank APIs)
+- Proof verified on-chain via Reclaim verifier (address from MCP or protocol docs)
+- Pattern: buyer generates proof off-chain -> submits to resolver -> resolver verifies + marks fulfilled
+- Storage: `mapping(uint256 => bool) public fulfilled` + `mapping(bytes32 => bool) public usedProofs`
+
+### Oracle (Chainlink)
+
+- Reads price feeds deployed natively on Arbitrum
+- Feed addresses: query MCP or protocol docs (e.g. ETH/USD has 8 decimals)
+- `isConditionMet` calls `IChainlinkFeed.latestRoundData()` and checks threshold
+- Always validate staleness: `require(block.timestamp - updatedAt <= maxStaleness)`
+- Interface: `function latestRoundData() returns (uint80, int256 answer, uint256, uint256 updatedAt, uint80)`
+
+### Prediction Markets (UMA)
+
+- Resolves binary or numeric outcomes via Optimistic Oracle
+- UMA OO V3 address: query MCP or protocol docs
+- `isConditionMet` calls `hasPrice()` then `getPrice()` and compares to required outcome
+- Resolution values: `1e18` = YES, `0` = NO
+
+### Multi-Signature
+
+- N-of-M approval pattern
+- Storage: `mapping(uint256 => mapping(address => bool)) public approvals`
+- `isConditionMet` counts approvals >= threshold
+- `onConditionSet` stores signers array and threshold
+
+### Time Lock
+
+- Simplest pattern: `block.timestamp >= deadline`
+- `onConditionSet` stores deadline, validates it's in the future
+
+## Common Mistakes
+
+1. Making `isConditionMet` non-view — causes protocol revert
+2. Not validating `onConditionSet` inputs — permanently broken escrow
+3. Trusting user-supplied addresses in view calls — store and validate in `onConditionSet`
+4. No replay protection for proof-based resolvers — track `usedProofs[keccak256(proof)]`
+5. Unbounded gas in `isConditionMet` — no loops or multiple external calls

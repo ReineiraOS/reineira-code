@@ -1,0 +1,88 @@
+---
+description: "Use when deploying contracts, verifying on Arbiscan, Arbitrum Sepolia deployment, environment variables, SDK integration, attaching resolvers to escrows"
+globs:
+alwaysApply: false
+---
+
+# Deployment & Integration
+
+## Deploy
+
+```bash
+npx hardhat run scripts/deploy.ts --network arbitrumSepolia
+```
+
+The deploy script prompts for the contract name and saves to `deployments/arbitrumSepolia.json`.
+
+## Environment Variables (see `.env.example`)
+
+```
+PRIVATE_KEY=0x...
+ARBITRUM_SEPOLIA_RPC_URL=https://...
+ETHERSCAN_API_KEY=...           # for contract verification
+ESCROW_ADDRESS=...              # query from MCP or protocol docs
+POLICY_REGISTRY_ADDRESS=...     # query from MCP or protocol docs
+```
+
+## Verify on Arbiscan
+
+```bash
+npx hardhat verify --network arbitrumSepolia <address>
+
+# With constructor arguments:
+npx hardhat verify --network arbitrumSepolia <address> <arg1> <arg2>
+```
+
+Verified URL: `https://sepolia.arbiscan.io/address/<address>#code`
+
+## SDK Integration (after deployment)
+
+### Resolver — attach to escrow
+
+```typescript
+import { ReineiraSDK } from '@reineira-os/sdk';
+
+const sdk = ReineiraSDK.create({
+    network: 'testnet',
+    privateKey: process.env.PRIVATE_KEY,
+});
+await sdk.initialize();
+
+const resolverData = ethers.AbiCoder.defaultAbiCoder().encode(
+    ['uint256'], // your resolver's expected data format
+    [1700000000] // your resolver's config values
+);
+
+const escrow = await sdk.escrow
+    .build()
+    .amount(sdk.stablecoin(1000))
+    .owner('0xRecipient...')
+    .condition('0xYourDeployedResolver...', resolverData)
+    .create();
+```
+
+### Policy — register and add to pool
+
+```typescript
+// Register policy
+sdk.insurance.registerPolicy('0xYourDeployedPolicy...');
+
+// Add to pool
+pool.addPolicy('0xYourDeployedPolicy...');
+
+// Purchase coverage
+sdk.insurance.purchaseCoverage({
+    pool,
+    policy: '0xYourDeployedPolicy...',
+    escrowId,
+    coverageAmount,
+    expiry,
+});
+```
+
+## Post-Deploy Checklist
+
+- [ ] Contract deployed and address recorded in `deployments/`
+- [ ] Contract verified on Arbiscan
+- [ ] For resolvers: test attachment to escrow via SDK
+- [ ] For policies: register with PolicyRegistry
