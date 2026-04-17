@@ -7,7 +7,7 @@ import {IUnderwriterPolicy} from "../contracts/interfaces/IUnderwriterPolicy.sol
 
 contract SimpleUnderwriterPolicyTest is Test {
     SimpleUnderwriterPolicy public policy;
-    
+
     uint256 constant COVERAGE_ID = 1;
     uint256 constant ESCROW_ID = 100;
     uint64 constant BASE_RISK_SCORE = 500; // 5%
@@ -18,12 +18,12 @@ contract SimpleUnderwriterPolicyTest is Test {
 
     function test_OnPolicySet() public {
         bytes memory data = abi.encode(BASE_RISK_SCORE);
-        
+
         vm.expectEmit(true, false, false, true);
         emit SimpleUnderwriterPolicy.PolicySet(COVERAGE_ID, BASE_RISK_SCORE);
-        
+
         policy.onPolicySet(COVERAGE_ID, data);
-        
+
         (uint64 storedScore, bool configured) = policy.policies(COVERAGE_ID);
         assertEq(storedScore, BASE_RISK_SCORE);
         assertTrue(configured);
@@ -32,7 +32,7 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_OnPolicySet_RevertsIfAlreadySet() public {
         bytes memory data = abi.encode(BASE_RISK_SCORE);
         policy.onPolicySet(COVERAGE_ID, data);
-        
+
         vm.expectRevert(SimpleUnderwriterPolicy.PolicyAlreadySet.selector);
         policy.onPolicySet(COVERAGE_ID, data);
     }
@@ -40,7 +40,7 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_OnPolicySet_RevertsIfScoreTooHigh() public {
         uint64 invalidScore = 10001;
         bytes memory data = abi.encode(invalidScore);
-        
+
         vm.expectRevert("Risk score must be <= 10000 bps");
         policy.onPolicySet(COVERAGE_ID, data);
     }
@@ -48,14 +48,14 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_EvaluateRisk() public {
         bytes memory policyData = abi.encode(BASE_RISK_SCORE);
         policy.onPolicySet(COVERAGE_ID, policyData);
-        
+
         bytes memory riskProof = "";
         policy.evaluateRisk(ESCROW_ID, riskProof);
     }
 
     function test_EvaluateRisk_RevertsIfNotConfigured() public {
         bytes memory riskProof = "";
-        
+
         vm.expectRevert("Policy not configured");
         policy.evaluateRisk(ESCROW_ID, riskProof);
     }
@@ -63,7 +63,7 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_Judge_ValidDispute() public {
         bytes memory policyData = abi.encode(BASE_RISK_SCORE);
         policy.onPolicySet(COVERAGE_ID, policyData);
-        
+
         bytes memory disputeProof = abi.encode(true, block.timestamp);
         policy.judge(COVERAGE_ID, disputeProof);
     }
@@ -71,7 +71,7 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_Judge_InvalidDispute() public {
         bytes memory policyData = abi.encode(BASE_RISK_SCORE);
         policy.onPolicySet(COVERAGE_ID, policyData);
-        
+
         bytes memory disputeProof = abi.encode(false, block.timestamp);
         policy.judge(COVERAGE_ID, disputeProof);
     }
@@ -79,7 +79,7 @@ contract SimpleUnderwriterPolicyTest is Test {
     function test_Judge_OldDispute() public {
         bytes memory policyData = abi.encode(BASE_RISK_SCORE);
         policy.onPolicySet(COVERAGE_ID, policyData);
-        
+
         uint256 oldTimestamp = block.timestamp - 31 days;
         bytes memory disputeProof = abi.encode(true, oldTimestamp);
         policy.judge(COVERAGE_ID, disputeProof);
@@ -87,7 +87,7 @@ contract SimpleUnderwriterPolicyTest is Test {
 
     function test_Judge_RevertsIfNotConfigured() public {
         bytes memory disputeProof = abi.encode(true, block.timestamp);
-        
+
         vm.expectRevert("Policy not configured");
         policy.judge(COVERAGE_ID, disputeProof);
     }
@@ -99,10 +99,10 @@ contract SimpleUnderwriterPolicyTest is Test {
 
     function testFuzz_OnPolicySet(uint64 riskScore) public {
         vm.assume(riskScore <= 10000);
-        
+
         bytes memory data = abi.encode(riskScore);
         policy.onPolicySet(COVERAGE_ID, data);
-        
+
         (uint64 storedScore, bool configured) = policy.policies(COVERAGE_ID);
         assertEq(storedScore, riskScore);
         assertTrue(configured);

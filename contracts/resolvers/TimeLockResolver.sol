@@ -22,10 +22,10 @@ contract TimeLockResolver is IConditionResolver, ERC165 {
     /// @inheritdoc IConditionResolver
     function onConditionSet(uint256 escrowId, bytes calldata data) external {
         if (configs[escrowId].deadline != 0) revert ConditionAlreadySet();
-        
+
         uint256 deadline = abi.decode(data, (uint256));
         if (deadline <= block.timestamp) revert InvalidDeadline();
-        
+
         configs[escrowId] = Config({deadline: deadline});
         emit ConditionSet(escrowId, deadline);
     }

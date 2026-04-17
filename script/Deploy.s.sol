@@ -25,7 +25,7 @@ abstract contract Deploy is Script {
     function saveDeployment(string memory contractName, address contractAddress) internal {
         string memory network = getNetworkName();
         string memory deploymentPath = string.concat("deployments/", network, ".json");
-        
+
         // Create deployment record
         string memory json = "deployment";
         vm.serializeString(json, "network", network);
@@ -33,10 +33,10 @@ abstract contract Deploy is Script {
         vm.serializeAddress(json, "deployer", vm.addr(getDeployerPrivateKey()));
         vm.serializeUint(json, "deployedAt", block.timestamp);
         string memory finalJson = vm.serializeString(json, "contractName", contractName);
-        
+
         // Write to file
         vm.writeJson(finalJson, deploymentPath, string.concat(".", contractName));
-        
+
         console2.log("Deployment saved to:", deploymentPath);
     }
 

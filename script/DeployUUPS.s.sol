@@ -24,23 +24,20 @@ abstract contract DeployUUPS is Script {
     /// @param contractName Name of the implementation contract
     /// @param initializerData Encoded initializer function call
     /// @return proxy Address of the deployed proxy
-    function deployUUPSProxy(
-        string memory contractName,
-        bytes memory initializerData
-    ) internal returns (address proxy) {
+    function deployUUPSProxy(string memory contractName, bytes memory initializerData)
+        internal
+        returns (address proxy)
+    {
         vm.startBroadcast(getDeployerPrivateKey());
-        
+
         // Deploy UUPS proxy using OpenZeppelin Foundry Upgrades
-        proxy = Upgrades.deployUUPSProxy(
-            contractName,
-            initializerData
-        );
-        
+        proxy = Upgrades.deployUUPSProxy(contractName, initializerData);
+
         vm.stopBroadcast();
-        
+
         logDeployment(contractName, proxy);
         saveDeployment(contractName, proxy);
-        
+
         return proxy;
     }
 
@@ -48,21 +45,15 @@ abstract contract DeployUUPS is Script {
     /// @param proxyAddress Address of the existing proxy
     /// @param newContractName Name of the new implementation contract
     /// @param initializerData Encoded initializer function call for the upgrade
-    function upgradeUUPSProxy(
-        address proxyAddress,
-        string memory newContractName,
-        bytes memory initializerData
-    ) internal {
+    function upgradeUUPSProxy(address proxyAddress, string memory newContractName, bytes memory initializerData)
+        internal
+    {
         vm.startBroadcast(getDeployerPrivateKey());
-        
-        Upgrades.upgradeProxy(
-            proxyAddress,
-            newContractName,
-            initializerData
-        );
-        
+
+        Upgrades.upgradeProxy(proxyAddress, newContractName, initializerData);
+
         vm.stopBroadcast();
-        
+
         console2.log("\n=== Upgrade Complete ===");
         console2.log("Proxy:", proxyAddress);
         console2.log("New Implementation:", newContractName);
@@ -75,7 +66,7 @@ abstract contract DeployUUPS is Script {
     function saveDeployment(string memory contractName, address proxyAddress) internal {
         string memory network = getNetworkName();
         string memory deploymentPath = string.concat("deployments/", network, ".json");
-        
+
         // Create deployment record
         string memory json = "deployment";
         vm.serializeString(json, "network", network);
@@ -84,10 +75,10 @@ abstract contract DeployUUPS is Script {
         vm.serializeUint(json, "deployedAt", block.timestamp);
         vm.serializeString(json, "type", "UUPS");
         string memory finalJson = vm.serializeString(json, "contractName", contractName);
-        
+
         // Write to file
         vm.writeJson(finalJson, deploymentPath, string.concat(".", contractName));
-        
+
         console2.log("Deployment saved to:", deploymentPath);
     }
 

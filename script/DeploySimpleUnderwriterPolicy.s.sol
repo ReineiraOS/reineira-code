@@ -7,13 +7,13 @@ import {SimpleUnderwriterPolicy} from "../contracts/policies/SimpleUnderwriterPo
 contract DeploySimpleUnderwriterPolicy is Deploy {
     function run() public override {
         uint256 deployerPrivateKey = getDeployerPrivateKey();
-        
+
         vm.startBroadcast(deployerPrivateKey);
-        
+
         SimpleUnderwriterPolicy policy = new SimpleUnderwriterPolicy();
-        
+
         vm.stopBroadcast();
-        
+
         logDeployment("SimpleUnderwriterPolicy", address(policy));
         saveDeployment("SimpleUnderwriterPolicy", address(policy));
     }
