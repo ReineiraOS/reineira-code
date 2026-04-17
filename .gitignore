@@ -1,5 +1,6 @@
 node_modules/
 cache/
+cache_forge/
 artifacts/
 typechain-types/
 coverage/
@@ -7,3 +8,8 @@ coverage.json
 .env
 deployments/*.json
 !deployments/.gitkeep
+
+# Foundry
+out/
+broadcast/
+lib/
