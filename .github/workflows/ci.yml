@@ -6,28 +6,21 @@ on:
     paths:
       - 'contracts/**'
       - 'test/**'
-      - 'scripts/**'
-      - 'hardhat.config.ts'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'script/**'
+      - 'foundry.toml'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: ['*']
     paths:
       - 'contracts/**'
       - 'test/**'
-      - 'scripts/**'
-      - 'hardhat.config.ts'
-      - 'package.json'
-      - 'package-lock.json'
+      - 'script/**'
+      - 'foundry.toml'
       - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  NODE_VERSION: '24'
 
 jobs:
   lint-and-format:
@@ -35,54 +28,46 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
-      - run: npm ci --legacy-peer-deps
+      - name: Install dependencies
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Check formatting
-        run: npm run format:check
-
-      - name: Lint Solidity
-        run: npm run lint
+        run: forge fmt --check
 
   compile:
     name: Compile Contracts
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
-      - run: npm ci --legacy-peer-deps
+      - name: Install dependencies
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Compile contracts
-        run: npm run compile
+        run: forge build --sizes
 
   test:
     name: Test Contracts
     runs-on: ubuntu-latest
     needs: compile
     timeout-minutes: 15
-    env:
-      MOCHA_TIMEOUT: '120000'
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
-      - run: npm ci --legacy-peer-deps
+      - name: Install dependencies
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Run tests
-        run: npm test
+        run: forge test -vvv
