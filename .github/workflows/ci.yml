@@ -36,7 +36,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-commit
+        run: forge install
 
       - name: Check formatting
         run: forge fmt --check
@@ -54,7 +54,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-commit
+        run: forge install
 
       - name: Compile contracts
         run: forge build --sizes
@@ -73,7 +73,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-commit
+        run: forge install
 
       - name: Run tests
         run: forge test -vvv
