@@ -1,66 +1,100 @@
-## Foundry
+# ReineiraOS Code
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+[![Platform](https://img.shields.io/badge/ReineiraOS-v0.1-blue)](https://reineira.xyz)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Foundry consists of:
+AI-assisted plugin development for ReineiraOS. Build condition resolvers and insurance policies with Claude Code.
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+> **Platform 0.1** — Generates contracts compatible with ReineiraOS v0.1 interfaces. Check `reineira.json` for version details.
 
-## Documentation
+## Setup
 
-https://book.getfoundry.sh/
+```bash
+git clone https://github.com/ReineiraOS/reineira-code.git
+cd reineira-code
+npm install --legacy-peer-deps
+cp .env.example .env
+# Add your private key and RPC URL to .env
+```
 
 ## Usage
 
-### Build
+Open in an editor with Claude Code. Use slash commands:
 
-```shell
-$ forge build
+| Command          | What it does                                               |
+| ---------------- | ---------------------------------------------------------- |
+| `/new-resolver`  | Build a condition resolver from a description              |
+| `/new-policy`    | Build an insurance policy with FHE from a description      |
+| `/deploy`        | Deploy any contract to Arbitrum Sepolia                    |
+| `/test`          | Run tests, diagnose and fix failures                       |
+| `/audit`         | Security audit against the protocol checklist              |
+| `/integrate`     | Generate SDK code to attach your contract to an escrow     |
+| `/scaffold-test` | Generate tests for an existing contract                    |
+| `/verify`        | Verify a deployed contract on Arbiscan                     |
+
+### Example
+
+```
+/new-resolver A resolver that verifies PayPal payment via zkTLS proof from Reclaim Protocol
 ```
 
-### Test
+Claude Code generates the Solidity contract, tests, and deployment script — all pre-configured for the ReineiraOS protocol.
 
-```shell
-$ forge test
+## The ecosystem
+
+| Repo                                                            | What you do there                                          | Platform |
+| --------------------------------------------------------------- | ---------------------------------------------------------- | -------- |
+| [reineira-atlas](https://github.com/ReineiraOS/reineira-atlas) | Run the startup — strategy, ops, growth, compliance, pitch | 0.1      |
+| **reineira-code** (this repo)                                   | Build smart contracts — resolvers, policies, tests, deploy | 0.1      |
+| [platform-modules](https://github.com/ReineiraOS/platform-modules) | Ship the product — backend, platform app, payment link  | 0.1      |
+
+All repos declare their platform compatibility in `reineira.json`. When the platform version bumps, breaking contract interface changes may require upgrading.
+
+## Manual workflow
+
+```bash
+# Compile
+forge build
+
+# Test
+forge test
+
+# Deploy
+forge script script/DeployTimeLockResolver.s.sol --rpc-url $ARBITRUM_SEPOLIA_RPC_URL --broadcast --verify
+
+# Verify on Arbiscan (if not done during deployment)
+forge verify-contract <address> <contract> --chain arbitrum-sepolia --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
-### Format
+## Compatibility
 
-```shell
-$ forge fmt
-```
+| Component | Requirement             |
+| --------- | ----------------------- |
+| Platform  | ReineiraOS 0.1          |
+| Solidity  | ^0.8.24                 |
+| Foundry   | Latest                  |
+| SDK       | @reineira-os/sdk ^0.1.0 |
+| cofhejs   | ^0.3.1                  |
+| Node.js   | 18+                     |
 
-### Gas Snapshots
+## Documentation
 
-```shell
-$ forge snapshot
-```
+- [ReineiraOS Docs](https://reineira.xyz/docs)
+- [Quick Start](https://reineira.xyz/docs/getting-started/quick-start)
+- [Condition Plugins](https://reineira.xyz/docs/develop/condition-plugins)
+- [Insurance Policies](https://reineira.xyz/docs/develop/insurance-policies)
+- [Telegram](https://t.me/ReineiraOS)
 
-### Anvil
+## Foundry Reference
 
-```shell
-$ anvil
-```
+This project uses Foundry for smart contract development:
 
-### Deploy
+- **Forge**: Ethereum testing framework
+- **Cast**: CLI for interacting with contracts
+- **Anvil**: Local Ethereum node for testing
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+For more details, see the [Foundry Book](https://book.getfoundry.sh/).
 
-### Cast
+## License
 
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+MIT
