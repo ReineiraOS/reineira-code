@@ -1,6 +1,6 @@
 import '@nomicfoundation/hardhat-toolbox-viem';
 import '@nomicfoundation/hardhat-ethers';
-import 'cofhe-hardhat-plugin';
+import '@cofhe/hardhat-plugin';
 import 'dotenv/config';
 
 import type { HardhatUserConfig } from 'hardhat/config';
