@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {IConditionResolver} from "../interfaces/IConditionResolver.sol";
 import {IOracleConditionResolver} from "../interfaces/IOracleConditionResolver.sol";
 import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /// @title ChainlinkConditionBase
 /// @notice Abstract base for Chainlink oracle-based condition resolvers.
@@ -60,7 +61,7 @@ abstract contract ChainlinkConditionBase is IOracleConditionResolver, ERC165 {
     ///      maxStaleness is in seconds (e.g., 3600 for 1 hour).
     /// @param escrowId The escrow identifier.
     /// @param data ABI-encoded configuration.
-    function _configure(uint256 escrowId, bytes calldata data) internal {
+    function _configure(uint256 escrowId, bytes memory data) internal {
         ChainlinkStorage storage $ = _getChainlinkStorage();
         if ($.configs[escrowId].configured) revert ConditionAlreadySet();
 
@@ -155,15 +156,4 @@ abstract contract ChainlinkConditionBase is IOracleConditionResolver, ERC165 {
         return interfaceId == type(IConditionResolver).interfaceId
             || interfaceId == type(IOracleConditionResolver).interfaceId || super.supportsInterface(interfaceId);
     }
-}
-
-/// @notice Minimal Chainlink AggregatorV3Interface for local type resolution.
-/// @dev This is a local workaround to avoid external dependencies in the base contract.
-///      Production deployments should use the official Chainlink interfaces.
-///      See: https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol
-interface AggregatorV3Interface {
-    function latestRoundData()
-        external
-        view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 }

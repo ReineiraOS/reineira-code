@@ -18,6 +18,7 @@ remappings = [
     "@fhenixprotocol/cofhe-contracts/=lib/fhenix-contracts/contracts/",
     "@fhenixprotocol/cofhe-mock-contracts/=lib/fhenix-contracts/contracts/",
     "@reclaimprotocol/verifier-solidity-sdk/=lib/verifier-solidity-sdk-integration/contracts/",
+    "@chainlink/contracts/=node_modules/@chainlink/contracts/",
     "openzeppelin-foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/",
     "forge-std/=lib/forge-std/src/"
 ]
