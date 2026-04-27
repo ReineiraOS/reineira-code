@@ -21,18 +21,21 @@
     "anvil": "anvil"
   },
   "dependencies": {
-    "@reineira-os/sdk": "^0.1.0"
+    "@reclaimprotocol/js-sdk": "^5.2.0",
+    "@reclaimprotocol/zk-fetch": "^0.8.0",
+    "@reineira-os/sdk": "^0.1.0",
+    "ethers": "^6.13.0"
   },
   "devDependencies": {
-    "dotenv": "^16.4.0",
-    "prettier": "^3.4.0",
-    "prettier-plugin-solidity": "^1.4.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.6",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "conventional-changelog-conventionalcommits": "^9.3.0",
+    "dotenv": "^16.4.0",
+    "prettier": "^3.4.0",
+    "prettier-plugin-solidity": "^1.4.0",
     "semantic-release": "^25.0.3"
   }
 }

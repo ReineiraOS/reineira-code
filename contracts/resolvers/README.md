@@ -284,15 +284,87 @@ Concrete implementations should consider:
 - Who can submit proofs/trigger updates?
 - Should there be emergency pause mechanisms?
 
+## Concrete Implementations
+
+### ReclaimResolver (Production-Ready)
+
+**Status:** ✅ Deployed and tested on Arbitrum Sepolia
+
+A complete zkTLS-based resolver using Reclaim Protocol for verifying HTTP/HTTPS endpoint data.
+
+**Contract:** `ReclaimResolver.sol`
+
+**Features:**
+- Verifies zkTLS proofs from Reclaim Protocol's zkFetch
+- Supports provider validation (e.g., "http" for HTTP requests)
+- Optional context validation (address and message fields)
+- Replay protection via proof identifier tracking
+- Interface-based integration to avoid pragma conflicts
+
+**Storage:**
+```solidity
+struct Config {
+    address reclaimAddress;           // Reclaim verifier contract
+    string expectedProvider;          // Expected provider (e.g., "http")
+    string expectedContextAddress;    // Optional context address
+    string expectedContextMessage;    // Optional context message
+    bool fulfilled;                   // Fulfillment status
+}
+```
+
+**Configuration Data Format:**
+```solidity
+abi.encode(
+    address reclaimAddress,
+    string expectedProvider,
+    string expectedContextAddress,    // Empty string to skip
+    string expectedContextMessage     // Empty string to skip
+)
+```
+
+**Usage Pattern:**
+1. Deploy ReclaimResolver
+2. Create escrow with resolver config pointing to Reclaim verifier
+3. User generates zkTLS proof via Reclaim's zkFetch
+4. User submits proof via `submitProof(escrowId, proofData)`
+5. Resolver verifies proof and marks condition as met
+6. Escrow can be released
+
+**Proof Data Format:**
+```solidity
+abi.encode(
+    string provider,
+    string parameters,
+    string context,
+    bytes32 identifier,
+    address owner,
+    uint32 timestampS,
+    uint32 epoch,
+    bytes[] signatures
+)
+```
+
+**Testnet Deployment (Arbitrum Sepolia):**
+- ReclaimResolver: `0x5f6F022740320c49F3F3868a75599d7fE0ac65c9`
+- SimpleEscrow: `0x58eba8b9258907bE0BEeAD6F25D7EEfda9735ff0`
+- ZkFetchVerifier (Mock): `0x4a0Bd08E23AdEE060CB3a45C38A01268C6753b4d`
+
+**E2E Test:**
+```bash
+node scripts/zkFetchE2ETest.js
+```
+
+See main README for complete E2E test documentation.
+
 ## Out of Scope
 
-This architecture provides **base abstractions only**. Concrete per-use-case resolvers are not included:
-- Specific zkTLS verifier implementations (Reclaim, TLSNotary, etc.)
+This architecture provides **base abstractions** and **one production resolver** (ReclaimResolver). Additional concrete resolvers not yet included:
+- TLSNotary-specific zkTLS resolver
 - Chainlink feed-specific resolvers (ETH/USD, BTC/USD, etc.)
 - Polymarket market-specific resolvers
 - UMA assertion-specific resolvers
 
-Developers should inherit from these bases to create production resolvers.
+Developers should inherit from the base abstractions to create additional production resolvers.
 
 ## Future Extensions
 
