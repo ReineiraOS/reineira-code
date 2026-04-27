@@ -1,0 +1,21 @@
+{
+  "network": "arbitrum_sepolia",
+  "chainId": 421614,
+  "timestamp": "2026-04-27T20:41:00.000Z",
+  "deployer": "0xDFdC570ec0586D5c00735a2277c21Dcc254B3917",
+  "hookedMonero": {
+    "WrappedMonero": "0x1d4A02888e5F5324A25C47411267734577023777",
+    "PlonkVerifier": "0xbcb6daafa23a8E97374bce9C57644Fb24b5aCEde",
+    "MockWstETH": "0x46bF880567b5B5159f73548314B8D8cE971e44e4",
+    "PythOracle": "0x4374e5a8b9C22271E9EB878A2AA31DE97DF15DAF",
+    "initialMoneroBlock": 3661882
+  },
+  "zkTLS": {
+    "MoneroTxResolver": "0x6f939773fA2748f3aBd3e7e7041077C4073323aE",
+    "ReclaimResolver": "0x5f6F022740320c49F3F3868a75599d7fE0ac65c9",
+    "SimpleEscrow": "0x58eba8b9258907bE0BEeAD6F25D7EEfda9735ff0",
+    "ZkFetchVerifier": "0x4a0Bd08E23AdEE060CB3a45C38A01268C6753b4d"
+  },
+  "explorer": "https://sepolia.arbiscan.io",
+  "rpc": "https://sepolia-rollup.arbitrum.io/rpc"
+}
