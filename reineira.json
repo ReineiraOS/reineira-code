@@ -9,8 +9,8 @@
     "sdk": "^0.1.0",
     "contracts": "0.1",
     "solidity": "^0.8.24",
-    "hardhat": "~2.26.0",
-    "cofhejs": "^0.3.1"
+    "foundry": ">=0.2.0",
+    "@cofhe/sdk": "^0.5.1"
   },
   "interfaces": {
     "IConditionResolver": "isConditionMet(uint256) + onConditionSet(uint256,bytes)",
