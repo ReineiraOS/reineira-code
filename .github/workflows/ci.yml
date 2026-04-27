@@ -34,7 +34,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Check formatting
         run: forge fmt --check
@@ -50,7 +50,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Compile contracts
         run: forge build --sizes
@@ -67,7 +67,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts FhenixProtocol/cofhe-mock-contracts OpenZeppelin/openzeppelin-foundry-upgrades
+        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
 
       - name: Run tests
         run: forge test -vvv
