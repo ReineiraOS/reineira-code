@@ -12,7 +12,7 @@ import {IOracleConditionResolver} from "../contracts/interfaces/IOracleCondition
 /// @dev Run with: forge script script/CreateChainlinkEscrow.s.sol --rpc-url arbitrum_sepolia --broadcast
 contract CreateChainlinkEscrow is Script {
     // Deployed contracts on Arbitrum Sepolia
-    address constant RESOLVER = 0x49DDce54E0dCe041fE2ab3590515b640289cE2de;
+    address constant RESOLVER = 0x7eb4f1Ab119a4521AeBc31a11FF703D105B0FEFE;
     address constant ETH_USD_FEED = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
 
     function run() external {
