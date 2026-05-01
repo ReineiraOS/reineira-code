@@ -41,15 +41,15 @@ contract SimpleEscrow {
     /// @param resolver Address of the IConditionResolver contract
     /// @param resolverData Configuration data for the resolver
     /// @return escrowId The ID of the created escrow
-    function createEscrow(
-        address beneficiary,
-        address resolver,
-        bytes calldata resolverData
-    ) external payable returns (uint256 escrowId) {
+    function createEscrow(address beneficiary, address resolver, bytes calldata resolverData)
+        external
+        payable
+        returns (uint256 escrowId)
+    {
         if (msg.value == 0) revert InsufficientValue();
 
         escrowId = nextEscrowId++;
-        
+
         escrows[escrowId] = Escrow({
             depositor: msg.sender,
             beneficiary: beneficiary,
@@ -69,19 +69,19 @@ contract SimpleEscrow {
     /// @param escrowId The ID of the escrow to release
     function release(uint256 escrowId) external {
         Escrow storage escrow = escrows[escrowId];
-        
+
         if (escrow.amount == 0) revert EscrowNotFound();
         if (escrow.released) revert AlreadyReleased();
         if (escrow.refunded) revert AlreadyRefunded();
-        
+
         // Check if condition is met
         if (!IConditionResolver(escrow.resolver).isConditionMet(escrowId)) {
             revert ConditionNotMet();
         }
 
         escrow.released = true;
-        
-        (bool success, ) = escrow.beneficiary.call{value: escrow.amount}("");
+
+        (bool success,) = escrow.beneficiary.call{value: escrow.amount}("");
         require(success, "Transfer failed");
 
         emit EscrowReleased(escrowId, escrow.beneficiary, escrow.amount);
@@ -91,15 +91,15 @@ contract SimpleEscrow {
     /// @param escrowId The ID of the escrow to refund
     function refund(uint256 escrowId) external {
         Escrow storage escrow = escrows[escrowId];
-        
+
         if (escrow.amount == 0) revert EscrowNotFound();
         if (msg.sender != escrow.depositor) revert OnlyDepositor();
         if (escrow.released) revert AlreadyReleased();
         if (escrow.refunded) revert AlreadyRefunded();
 
         escrow.refunded = true;
-        
-        (bool success, ) = escrow.depositor.call{value: escrow.amount}("");
+
+        (bool success,) = escrow.depositor.call{value: escrow.amount}("");
         require(success, "Transfer failed");
 
         emit EscrowRefunded(escrowId, escrow.depositor, escrow.amount);

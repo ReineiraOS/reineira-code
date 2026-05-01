@@ -30,14 +30,14 @@ contract DeployZkFetchE2E is Deploy {
 
         // 4. Create a test escrow with zkFetch verifier
         bytes memory resolverConfig = abi.encode(
-            address(verifier),          // zkFetch verifier address
-            "http",                     // Expected provider
-            "",                         // No context address validation
-            ""                          // No context message validation
+            address(verifier), // zkFetch verifier address
+            "http", // Expected provider
+            "", // No context address validation
+            "" // No context message validation
         );
 
         uint256 escrowId = escrow.createEscrow{value: 0.001 ether}(
-            deployer,                   // Beneficiary
+            deployer, // Beneficiary
             address(resolver),
             resolverConfig
         );

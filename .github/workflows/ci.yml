@@ -2,21 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'contracts/**'
-      - 'test/**'
-      - 'script/**'
-      - 'foundry.toml'
-      - '.github/workflows/ci.yml'
+    branches: [main, chainlink-resolver]
   pull_request:
     branches: ['*']
-    paths:
-      - 'contracts/**'
-      - 'test/**'
-      - 'script/**'
-      - 'foundry.toml'
-      - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,12 +17,28 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/ foundry.lock
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install forge dependencies
+        run: |
+          mkdir -p lib
+          cd lib
+          git clone --depth 1 --branch v1.16.0 https://github.com/foundry-rs/forge-std.git
+          git clone --depth 1 --branch v5.4.0 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/fhenix-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/cofhe-contracts.git
+          git clone --depth 1 https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades.git
+          cd ..
 
       - name: Check formatting
         run: forge fmt --check
@@ -45,12 +49,28 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/ foundry.lock
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install forge dependencies
+        run: |
+          mkdir -p lib
+          cd lib
+          git clone --depth 1 --branch v1.16.0 https://github.com/foundry-rs/forge-std.git
+          git clone --depth 1 --branch v5.4.0 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/fhenix-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/cofhe-contracts.git
+          git clone --depth 1 https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades.git
+          cd ..
 
       - name: Compile contracts
         run: forge build --sizes
@@ -62,12 +82,28 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/ foundry.lock
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Install dependencies
-        run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install forge dependencies
+        run: |
+          mkdir -p lib
+          cd lib
+          git clone --depth 1 --branch v1.16.0 https://github.com/foundry-rs/forge-std.git
+          git clone --depth 1 --branch v5.4.0 https://github.com/OpenZeppelin/openzeppelin-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/fhenix-contracts.git
+          git clone --depth 1 https://github.com/FhenixProtocol/cofhe-contracts.git
+          git clone --depth 1 https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades.git
+          cd ..
 
       - name: Run tests
         run: forge test -vvv

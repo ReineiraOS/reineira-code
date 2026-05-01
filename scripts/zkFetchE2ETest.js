@@ -21,8 +21,8 @@ const RECLAIM_APP_ID = process.env.RECLAIM_APP_ID;
 const RECLAIM_APP_SECRET = process.env.RECLAIM_APP_SECRET;
 
 // Deployed contract addresses from DeployZkFetchE2E
-const RESOLVER_ADDRESS = '0x5f6F022740320c49F3F3868a75599d7fE0ac65c9';
-const ESCROW_ADDRESS = '0x58eba8b9258907bE0BEeAD6F25D7EEfda9735ff0';
+const RESOLVER_ADDRESS = '0x0bc7a6f18d868b635f25f9c80f7d228f02bcc1b6';
+const ESCROW_ADDRESS = '0x2ac6ec4ead841034810d8d521c75b9a31f145026';
 const ESCROW_ID = 0;
 
 async function runE2ETest() {
