@@ -11,8 +11,9 @@ import {IOracleConditionResolver} from "../contracts/interfaces/IOracleCondition
 /// @dev Run with: forge script script/ConfigureChainlinkCondition.s.sol --rpc-url arbitrum_sepolia --broadcast
 contract ConfigureChainlinkCondition is Script {
     // Deployed resolver on Arbitrum Sepolia
-    ChainlinkPriceFeedResolver constant RESOLVER = ChainlinkPriceFeedResolver(0x49DDce54E0dCe041fE2ab3590515b640289cE2de);
-    
+    ChainlinkPriceFeedResolver constant RESOLVER =
+        ChainlinkPriceFeedResolver(0x49DDce54E0dCe041fE2ab3590515b640289cE2de);
+
     // Chainlink ETH/USD feed on Arbitrum Sepolia
     address constant ETH_USD_FEED = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
 

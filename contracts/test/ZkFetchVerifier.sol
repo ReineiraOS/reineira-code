@@ -6,11 +6,7 @@ pragma solidity ^0.8.24;
 /// @dev In production, zkFetch proofs should be verified off-chain using Reclaim SDK
 ///      This contract is ONLY for E2E testing purposes
 contract ZkFetchVerifier {
-    event ProofVerified(
-        bytes32 indexed identifier,
-        address indexed owner,
-        string provider
-    );
+    event ProofVerified(bytes32 indexed identifier, address indexed owner, string provider);
 
     /// @notice Verify a zkFetch proof (mock - always returns true)
     /// @dev In production, use Reclaim SDK's verifyProof() off-chain
@@ -24,7 +20,10 @@ contract ZkFetchVerifier {
         uint32, // timestampS
         uint32, // epoch
         bytes[] memory // signatures
-    ) external pure {
+    )
+        external
+        pure
+    {
         // Mock verification - always succeeds
         // For zkFetch, real verification happens off-chain via Reclaim SDK
         // This is just a placeholder to allow on-chain proof submission

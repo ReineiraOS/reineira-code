@@ -43,10 +43,13 @@ contract ChainlinkFunctionsResolverTest is Test {
         string[] memory args = new string[](0);
         bytes memory encryptedSecretsUrls = "";
 
-        bytes memory data = abi.encode(SOURCE, args, encryptedSecretsUrls, SUBSCRIPTION_ID, GAS_LIMIT, DON_ID, EXPECTED_RESULT);
+        bytes memory data =
+            abi.encode(SOURCE, args, encryptedSecretsUrls, SUBSCRIPTION_ID, GAS_LIMIT, DON_ID, EXPECTED_RESULT);
 
         vm.expectEmit(true, false, false, true);
-        emit ChainlinkFunctionsResolver.ConditionConfigured(ESCROW_ID, SUBSCRIPTION_ID, DON_ID, GAS_LIMIT, EXPECTED_RESULT);
+        emit ChainlinkFunctionsResolver.ConditionConfigured(
+            ESCROW_ID, SUBSCRIPTION_ID, DON_ID, GAS_LIMIT, EXPECTED_RESULT
+        );
 
         resolver.onConditionSet(ESCROW_ID, data);
 

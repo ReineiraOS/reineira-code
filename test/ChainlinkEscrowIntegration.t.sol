@@ -26,7 +26,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
         vm.deal(beneficiary, 1 ether);
 
         console.log("\n=== DEPLOYING CONTRACTS ===");
-        
+
         // Deploy resolver
         resolver = new ChainlinkPriceFeedResolver();
         console.log("Resolver deployed:", address(resolver));
@@ -39,9 +39,9 @@ contract ChainlinkEscrowIntegrationTest is Test {
     /// @notice Full lifecycle test: Create escrow, check condition, release funds
     function test_FullEscrowLifecycle_ETHPrice() public {
         console.log("\n=== TEST: Full Escrow Lifecycle ===");
-        
+
         uint256 escrowAmount = 1 ether;
-        
+
         // Get current ETH price first
         AggregatorV3Interface feed = AggregatorV3Interface(ETH_USD_FEED);
         (, int256 currentPrice,,,) = feed.latestRoundData();
@@ -62,18 +62,13 @@ contract ChainlinkEscrowIntegrationTest is Test {
 
         // Create escrow
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(
-            beneficiary,
-            address(resolver),
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(beneficiary, address(resolver), resolverData);
 
         console.log("  Escrow ID:", escrowId);
 
         // Verify escrow state
-        (address dep, address ben, uint256 amount, address res, bool released, bool refunded) = 
-            escrow.escrows(escrowId);
-        
+        (address dep, address ben, uint256 amount, address res, bool released, bool refunded) = escrow.escrows(escrowId);
+
         assertEq(dep, depositor, "Depositor mismatch");
         assertEq(ben, beneficiary, "Beneficiary mismatch");
         assertEq(amount, escrowAmount, "Amount mismatch");
@@ -87,10 +82,9 @@ contract ChainlinkEscrowIntegrationTest is Test {
         assertTrue(conditionMet, "Condition should be met");
 
         // Check resolver details
-        (int256 storedThreshold, IOracleConditionResolver.ComparisonOp storedOp) = 
-            resolver.getThreshold(escrowId);
+        (int256 storedThreshold, IOracleConditionResolver.ComparisonOp storedOp) = resolver.getThreshold(escrowId);
         (int256 latestValue, uint256 timestamp) = resolver.getLatestValue(escrowId);
-        
+
         console.log("  Latest value:", uint256(latestValue) / 10 ** 8);
         console.log("  Threshold:", uint256(storedThreshold) / 10 ** 8);
         console.log("  Last update:", timestamp);
@@ -117,11 +111,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
         bytes memory resolverData = abi.encode(ETH_USD_FEED, threshold, op, maxStaleness);
 
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: 1 ether}(
-            beneficiary,
-            address(resolver),
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: 1 ether}(beneficiary, address(resolver), resolverData);
 
         console.log("Escrow ID:", escrowId);
         console.log("Condition: ETH > $1,000,000");
@@ -144,7 +134,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
         // Get current prices
         AggregatorV3Interface ethFeed = AggregatorV3Interface(ETH_USD_FEED);
         AggregatorV3Interface btcFeed = AggregatorV3Interface(BTC_USD_FEED);
-        
+
         (, int256 ethPrice,,,) = ethFeed.latestRoundData();
         (, int256 btcPrice,,,) = btcFeed.latestRoundData();
 
@@ -153,10 +143,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
 
         // Escrow 1: ETH > (current - 100)
         bytes memory data1 = abi.encode(
-            ETH_USD_FEED,
-            ethPrice - (100 * 10 ** 8),
-            uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
-            3600
+            ETH_USD_FEED, ethPrice - (100 * 10 ** 8), uint8(IOracleConditionResolver.ComparisonOp.GreaterThan), 3600
         );
 
         vm.prank(depositor);
@@ -164,10 +151,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
 
         // Escrow 2: BTC < (current + 1000)
         bytes memory data2 = abi.encode(
-            BTC_USD_FEED,
-            btcPrice + (1000 * 10 ** 8),
-            uint8(IOracleConditionResolver.ComparisonOp.LessThan),
-            3600
+            BTC_USD_FEED, btcPrice + (1000 * 10 ** 8), uint8(IOracleConditionResolver.ComparisonOp.LessThan), 3600
         );
 
         vm.prank(depositor);
@@ -201,11 +185,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
         );
 
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: 1 ether}(
-            beneficiary,
-            address(resolver),
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: 1 ether}(beneficiary, address(resolver), resolverData);
 
         // Check staleness
         bool isStale = resolver.isStale(escrowId);
@@ -224,19 +204,11 @@ contract ChainlinkEscrowIntegrationTest is Test {
     function test_RefundEscrow() public {
         console.log("\n=== TEST: Refund Escrow ===");
 
-        bytes memory resolverData = abi.encode(
-            ETH_USD_FEED,
-            100 * 10 ** 8,
-            uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
-            3600
-        );
+        bytes memory resolverData =
+            abi.encode(ETH_USD_FEED, 100 * 10 ** 8, uint8(IOracleConditionResolver.ComparisonOp.GreaterThan), 3600);
 
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: 1 ether}(
-            beneficiary,
-            address(resolver),
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: 1 ether}(beneficiary, address(resolver), resolverData);
 
         uint256 depositorBalanceBefore = depositor.balance;
 
@@ -247,7 +219,7 @@ contract ChainlinkEscrowIntegrationTest is Test {
         uint256 depositorBalanceAfter = depositor.balance;
         console.log("Depositor balance before:", depositorBalanceBefore);
         console.log("Depositor balance after:", depositorBalanceAfter);
-        
+
         assertEq(depositorBalanceAfter - depositorBalanceBefore, 1 ether, "Refund failed");
 
         console.log("SUCCESS: Refund working");

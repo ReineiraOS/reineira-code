@@ -34,7 +34,7 @@ contract CreateChainlinkEscrow is Script {
         // Configure Chainlink condition: Release when ETH > $2000
         address beneficiary = deployer; // For demo, send back to yourself
         uint256 escrowAmount = 0.001 ether; // 0.001 ETH
-        
+
         int256 threshold = 2000 * 10 ** 8; // $2000 with 8 decimals
         uint8 op = uint8(IOracleConditionResolver.ComparisonOp.GreaterThan);
         uint256 maxStaleness = 3600; // 1 hour
@@ -49,11 +49,7 @@ contract CreateChainlinkEscrow is Script {
         console.log("");
 
         // Create the escrow
-        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(
-            beneficiary,
-            RESOLVER,
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(beneficiary, RESOLVER, resolverData);
 
         console.log("Escrow created! ID:", escrowId);
         console.log("");
@@ -62,10 +58,10 @@ contract CreateChainlinkEscrow is Script {
 
         // Check current state
         console.log("=== Current State ===");
-        
-        (address depositor, address ben, uint256 amount, address resolver, bool released, bool refunded) = 
+
+        (address depositor, address ben, uint256 amount, address resolver, bool released, bool refunded) =
             escrow.escrows(escrowId);
-        
+
         console.log("Depositor:", depositor);
         console.log("Beneficiary:", ben);
         console.log("Amount:", amount);

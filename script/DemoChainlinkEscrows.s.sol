@@ -31,7 +31,7 @@ contract DemoChainlinkEscrows is Script {
         console.log("Step 1: Deploying contracts...");
         ChainlinkPriceFeedResolver resolver = new ChainlinkPriceFeedResolver();
         SimpleEscrow escrow = new SimpleEscrow();
-        
+
         console.log("Resolver:", address(resolver));
         console.log("Escrow:", address(escrow));
         console.log("");
@@ -55,12 +55,8 @@ contract DemoChainlinkEscrows is Script {
             uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
             3600
         );
-        
-        uint256 escrow1 = escrow.createEscrow{value: 0.001 ether}(
-            deployer,
-            address(resolver),
-            metData
-        );
+
+        uint256 escrow1 = escrow.createEscrow{value: 0.001 ether}(deployer, address(resolver), metData);
         console.log("Escrow 1 created (ID:", escrow1, ")");
         console.log("  Amount: 0.001 ETH");
         console.log("  Condition: ETH >", (uint256(ethPrice) / 10 ** 8) - 100);
@@ -75,12 +71,8 @@ contract DemoChainlinkEscrows is Script {
             uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
             3600
         );
-        
-        uint256 escrow2 = escrow.createEscrow{value: 0.002 ether}(
-            deployer,
-            address(resolver),
-            unmetData
-        );
+
+        uint256 escrow2 = escrow.createEscrow{value: 0.002 ether}(deployer, address(resolver), unmetData);
         console.log("Escrow 2 created (ID:", escrow2, ")");
         console.log("  Amount: 0.002 ETH");
         console.log("  Condition: ETH >", (uint256(ethPrice) / 10 ** 8) + 500);
@@ -95,12 +87,8 @@ contract DemoChainlinkEscrows is Script {
             uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
             3600
         );
-        
-        uint256 escrow3 = escrow.createEscrow{value: 0.0015 ether}(
-            deployer,
-            address(resolver),
-            btcData
-        );
+
+        uint256 escrow3 = escrow.createEscrow{value: 0.0015 ether}(deployer, address(resolver), btcData);
         console.log("Escrow 3 created (ID:", escrow3, ")");
         console.log("  Amount: 0.0015 ETH");
         console.log("  Condition: BTC >", (uint256(btcPrice) / 10 ** 8) - 1000);
@@ -109,11 +97,11 @@ contract DemoChainlinkEscrows is Script {
 
         // 5. RELEASE the escrows that are ready
         console.log("Step 5: Releasing escrows with met conditions...");
-        
+
         bool canRelease1 = escrow.isConditionMet(escrow1);
         bool canRelease2 = escrow.isConditionMet(escrow2);
         bool canRelease3 = escrow.isConditionMet(escrow3);
-        
+
         console.log("Escrow 1 can release:", canRelease1);
         console.log("Escrow 2 can release:", canRelease2);
         console.log("Escrow 3 can release:", canRelease3);
@@ -123,7 +111,7 @@ contract DemoChainlinkEscrows is Script {
             escrow.release(escrow1);
             console.log("Escrow 1 RELEASED!");
         }
-        
+
         if (canRelease3) {
             escrow.release(escrow3);
             console.log("Escrow 3 RELEASED!");
