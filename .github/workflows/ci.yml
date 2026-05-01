@@ -2,21 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
-    paths:
-      - 'contracts/**'
-      - 'test/**'
-      - 'script/**'
-      - 'foundry.toml'
-      - '.github/workflows/ci.yml'
+    branches: [main, chainlink-resolver]
   pull_request:
     branches: ['*']
-    paths:
-      - 'contracts/**'
-      - 'test/**'
-      - 'script/**'
-      - 'foundry.toml'
-      - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,15 +17,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Clean submodules
-        run: rm -rf .gitmodules lib/
-
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install forge dependencies
         run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
@@ -51,15 +41,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Clean submodules
-        run: rm -rf .gitmodules lib/
-
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install forge dependencies
         run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
@@ -74,15 +66,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Thorough clean
+        run: rm -rf .gitmodules lib/ node_modules/
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Clean submodules
-        run: rm -rf .gitmodules lib/
-
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install forge dependencies
         run: forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 FhenixProtocol/cofhe-contracts@v0.1.3 FhenixProtocol/cofhesdk@6af05d94 OpenZeppelin/openzeppelin-foundry-upgrades
