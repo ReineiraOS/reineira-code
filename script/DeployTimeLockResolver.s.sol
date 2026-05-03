@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Deploy} from "./Deploy.s.sol";
-import {TimeLockResolver} from "../contracts/resolvers/TimeLockResolver.sol";
+import {TimeLockResolver} from "../contracts/resolvers/TimelockResolver.sol";
 
 contract DeployTimeLockResolver is Deploy {
     function run() public override {
