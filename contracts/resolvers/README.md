@@ -345,9 +345,9 @@ abi.encode(
 ```
 
 **Testnet Deployment (Arbitrum Sepolia):**
-- ReclaimResolver: `0x5f6F022740320c49F3F3868a75599d7fE0ac65c9`
-- SimpleEscrow: `0x58eba8b9258907bE0BEeAD6F25D7EEfda9735ff0`
-- ZkFetchVerifier (Mock): `0x4a0Bd08E23AdEE060CB3a45C38A01268C6753b4d`
+- ReclaimResolver: `0x05E856c5436Bd7b1f00a51f2D5154ea5b80f5D2c`
+- SimpleEscrow: `0xd5F872B590AF61014A17DE9EA6Cd0c6f3208660b`
+- ZkFetchVerifier (Mock): `0xB9b71f4c602a4cD82704eC329f535A0Ed916e138`
 
 **E2E Test:**
 ```bash
