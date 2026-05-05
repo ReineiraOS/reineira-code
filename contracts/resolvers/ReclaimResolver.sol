@@ -68,13 +68,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
             fulfilled: false
         });
 
-        emit ConditionSet(
-            escrowId,
-            reclaimAddress,
-            expectedProvider,
-            expectedContextAddress,
-            expectedContextMessage
-        );
+        emit ConditionSet(escrowId, reclaimAddress, expectedProvider, expectedContextAddress, expectedContextMessage);
     }
 
     /// @notice Submit a Reclaim zkTLS proof to fulfill the condition
@@ -91,7 +85,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
         // ClaimInfo has: (string provider, string parameters, string context)
         // SignedClaim has: (CompleteClaimData claim, bytes[] signatures)
         // CompleteClaimData has: (bytes32 identifier, address owner, uint32 timestampS, uint32 epoch)
-        
+
         (
             string memory provider,
             string memory parameters,
@@ -140,7 +134,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
             signatures
         );
 
-        (bool success, ) = config.reclaimAddress.staticcall(reclaimProofCall);
+        (bool success,) = config.reclaimAddress.staticcall(reclaimProofCall);
         if (!success) revert InvalidProof();
 
         // Mark proof as used and condition as fulfilled
@@ -159,10 +153,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
     /// @param data The context string
     /// @param target The field prefix to search for (e.g., '"contextAddress":"')
     /// @return The extracted field value
-    function _extractFieldFromContext(
-        string memory data,
-        string memory target
-    ) internal pure returns (string memory) {
+    function _extractFieldFromContext(string memory data, string memory target) internal pure returns (string memory) {
         bytes memory dataBytes = bytes(data);
         bytes memory targetBytes = bytes(target);
 
@@ -170,13 +161,13 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
             return "";
         }
 
-        uint start = 0;
+        uint256 start = 0;
         bool foundStart = false;
 
         // Find the target string
-        for (uint i = 0; i <= dataBytes.length - targetBytes.length; i++) {
+        for (uint256 i = 0; i <= dataBytes.length - targetBytes.length; i++) {
             bool isMatch = true;
-            for (uint j = 0; j < targetBytes.length && isMatch; j++) {
+            for (uint256 j = 0; j < targetBytes.length && isMatch; j++) {
                 if (dataBytes[i + j] != targetBytes[j]) {
                     isMatch = false;
                 }
@@ -193,7 +184,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
         }
 
         // Find the closing quote
-        uint end = start;
+        uint256 end = start;
         while (end < dataBytes.length && !(dataBytes[end] == '"' && (end == 0 || dataBytes[end - 1] != "\\"))) {
             end++;
         }
@@ -203,7 +194,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
         }
 
         bytes memory result = new bytes(end - start);
-        for (uint i = start; i < end; i++) {
+        for (uint256 i = start; i < end; i++) {
             result[i - start] = dataBytes[i];
         }
 

@@ -46,7 +46,7 @@ contract ReclaimResolverTest is Test {
     string constant PROVIDER = "http";
     string constant EXPECTED_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
     string constant EXPECTED_MESSAGE = "payment_received";
-    
+
     bytes32 validIdentifier;
     address proofOwner;
     uint32 timestamp;
@@ -55,7 +55,7 @@ contract ReclaimResolverTest is Test {
     function setUp() public {
         resolver = new ReclaimResolver();
         mockReclaim = new MockReclaimVerifier();
-        
+
         validIdentifier = keccak256("unique_proof_id");
         proofOwner = address(0x123);
         timestamp = uint32(block.timestamp);
@@ -65,21 +65,10 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_OnConditionSet() public {
-        bytes memory data = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        bytes memory data = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
 
         vm.expectEmit(true, false, false, true);
-        emit ReclaimResolver.ConditionSet(
-            ESCROW_ID,
-            address(mockReclaim),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        emit ReclaimResolver.ConditionSet(ESCROW_ID, address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
 
         resolver.onConditionSet(ESCROW_ID, data);
 
@@ -90,7 +79,7 @@ contract ReclaimResolverTest is Test {
             string memory storedMessage,
             bool fulfilled
         ) = resolver.configs(ESCROW_ID);
-        
+
         assertEq(storedReclaim, address(mockReclaim));
         assertEq(storedProvider, PROVIDER);
         assertEq(storedAddress, EXPECTED_ADDRESS);
@@ -99,36 +88,21 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_OnConditionSet_RevertsIfZeroAddress() public {
-        bytes memory data = abi.encode(
-            address(0),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        bytes memory data = abi.encode(address(0), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
 
         vm.expectRevert(ReclaimResolver.InvalidReclaimAddress.selector);
         resolver.onConditionSet(ESCROW_ID, data);
     }
 
     function test_OnConditionSet_RevertsIfEmptyProvider() public {
-        bytes memory data = abi.encode(
-            address(mockReclaim),
-            "",
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        bytes memory data = abi.encode(address(mockReclaim), "", EXPECTED_ADDRESS, EXPECTED_MESSAGE);
 
         vm.expectRevert(ReclaimResolver.EmptyProvider.selector);
         resolver.onConditionSet(ESCROW_ID, data);
     }
 
     function test_OnConditionSet_RevertsIfAlreadySet() public {
-        bytes memory data = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        bytes memory data = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
         resolver.onConditionSet(ESCROW_ID, data);
 
         vm.expectRevert(ReclaimResolver.ConditionAlreadySet.selector);
@@ -140,7 +114,7 @@ contract ReclaimResolverTest is Test {
             address(mockReclaim),
             PROVIDER,
             "", // empty context address
-            ""  // empty context message
+            "" // empty context message
         );
 
         resolver.onConditionSet(ESCROW_ID, data);
@@ -152,7 +126,7 @@ contract ReclaimResolverTest is Test {
             string memory storedMessage,
             bool fulfilled
         ) = resolver.configs(ESCROW_ID);
-        
+
         assertEq(storedReclaim, address(mockReclaim));
         assertEq(storedProvider, PROVIDER);
         assertEq(storedAddress, "");
@@ -161,32 +135,18 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_SubmitProof_Success() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            EXPECTED_MESSAGE
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
         resolver.onConditionSet(ESCROW_ID, configData);
 
-        string memory context = string(abi.encodePacked(
-            '{"contextAddress":"', EXPECTED_ADDRESS, 
-            '","contextMessage":"', EXPECTED_MESSAGE, '"}'
-        ));
-        
+        string memory context = string(
+            abi.encodePacked('{"contextAddress":"', EXPECTED_ADDRESS, '","contextMessage":"', EXPECTED_MESSAGE, '"}')
+        );
+
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            context,
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", context, validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectEmit(true, false, false, true);
         emit ReclaimResolver.ProofSubmitted(ESCROW_ID, validIdentifier);
@@ -202,25 +162,17 @@ contract ReclaimResolverTest is Test {
             address(mockReclaim),
             PROVIDER,
             "", // no context address check
-            ""  // no context message check
+            "" // no context message check
         );
         resolver.onConditionSet(ESCROW_ID, configData);
 
         string memory context = '{"someField":"someValue"}';
-        
+
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            context,
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", context, validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         resolver.submitProof(ESCROW_ID, proofData);
 
@@ -228,27 +180,14 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_SubmitProof_RevertsIfAlreadyFulfilled() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            "{}",
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         resolver.submitProof(ESCROW_ID, proofData);
 
@@ -257,27 +196,14 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_SubmitProof_RevertsIfProofReused() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            "{}",
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         resolver.submitProof(ESCROW_ID, proofData);
 
@@ -289,97 +215,53 @@ contract ReclaimResolverTest is Test {
     }
 
     function test_SubmitProof_RevertsIfProviderMismatch() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            "wrong_provider",
-            "parameters",
-            "{}",
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode("wrong_provider", "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectRevert(ReclaimResolver.ProviderMismatch.selector);
         resolver.submitProof(ESCROW_ID, proofData);
     }
 
     function test_SubmitProof_RevertsIfContextAddressMismatch() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            EXPECTED_ADDRESS,
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         string memory wrongContext = '{"contextAddress":"0xWrongAddress"}';
-        
+
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            wrongContext,
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", wrongContext, validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectRevert(ReclaimResolver.ContextAddressMismatch.selector);
         resolver.submitProof(ESCROW_ID, proofData);
     }
 
     function test_SubmitProof_RevertsIfContextMessageMismatch() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            EXPECTED_MESSAGE
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", EXPECTED_MESSAGE);
         resolver.onConditionSet(ESCROW_ID, configData);
 
         string memory wrongContext = '{"contextMessage":"wrong_message"}';
-        
+
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            wrongContext,
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", wrongContext, validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectRevert(ReclaimResolver.ContextMessageMismatch.selector);
         resolver.submitProof(ESCROW_ID, proofData);
     }
 
     function test_SubmitProof_RevertsIfReclaimVerificationFails() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         mockReclaim.setShouldRevert(true);
@@ -387,55 +269,29 @@ contract ReclaimResolverTest is Test {
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            "{}",
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectRevert(ReclaimResolver.InvalidProof.selector);
         resolver.submitProof(ESCROW_ID, proofData);
     }
 
     function test_IsConditionMet_ReturnsFalseBeforeProof() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         assertFalse(resolver.isConditionMet(ESCROW_ID));
     }
 
     function test_IsConditionMet_ReturnsTrueAfterProof() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "",
-            ""
-        );
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
 
-        bytes memory proofData = abi.encode(
-            PROVIDER,
-            "parameters",
-            "{}",
-            validIdentifier,
-            proofOwner,
-            timestamp,
-            epoch,
-            signatures
-        );
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         resolver.submitProof(ESCROW_ID, proofData);
 
@@ -447,10 +303,7 @@ contract ReclaimResolverTest is Test {
         assertTrue(resolver.supportsInterface(resolverInterface));
     }
 
-    function testFuzz_OnConditionSet(
-        address fuzzReclaim,
-        string memory fuzzProvider
-    ) public {
+    function testFuzz_OnConditionSet(address fuzzReclaim, string memory fuzzProvider) public {
         vm.assume(fuzzReclaim != address(0));
         vm.assume(bytes(fuzzProvider).length > 0);
         vm.assume(bytes(fuzzProvider).length < 1000);
@@ -458,7 +311,7 @@ contract ReclaimResolverTest is Test {
         bytes memory data = abi.encode(fuzzReclaim, fuzzProvider, "", "");
         resolver.onConditionSet(ESCROW_ID, data);
 
-        (address storedReclaim, string memory storedProvider, , , ) = resolver.configs(ESCROW_ID);
+        (address storedReclaim, string memory storedProvider,,,) = resolver.configs(ESCROW_ID);
         assertEq(storedReclaim, fuzzReclaim);
         assertEq(storedProvider, fuzzProvider);
     }
