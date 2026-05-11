@@ -26,9 +26,11 @@ remappings = [
 # RPC endpoints
 [rpc_endpoints]
 arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
+arbitrum = "${ARBITRUM_RPC_URL}"
 
 # Etherscan API keys for verification
 [etherscan]
 arbitrum_sepolia = { key = "${ETHERSCAN_API_KEY}" }
+arbitrum = { key = "${ETHERSCAN_API_KEY}" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

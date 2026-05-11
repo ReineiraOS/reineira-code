@@ -21,7 +21,8 @@ contract ChainlinkPriceFeedResolverForkTest is Test {
 
     function setUp() public {
         // Deploy resolver
-        resolver = new ChainlinkPriceFeedResolver();
+        resolver = new ChainlinkPriceFeedResolver(address(this));
+        resolver.grantProtocolRole(address(this));
         console.log("Resolver deployed at:", address(resolver));
     }
 

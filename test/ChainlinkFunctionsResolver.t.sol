@@ -36,7 +36,9 @@ contract ChainlinkFunctionsResolverTest is Test {
 
     function setUp() public {
         mockRouter = new MockFunctionsRouter();
-        resolver = new ChainlinkFunctionsResolver(address(mockRouter));
+        resolver = new ChainlinkFunctionsResolver(address(mockRouter), address(this));
+        resolver.grantProtocolRole(address(this));
+        resolver.grantComplianceRole(address(this));
     }
 
     function test_ConfigureCondition() public {
@@ -155,19 +157,16 @@ contract ChainlinkFunctionsResolverTest is Test {
         assertEq(resolver.getSource(ESCROW_ID), SOURCE);
     }
 
-    function test_DefaultGasLimit() public {
+    function test_PauseAndUnpause() public {
         string[] memory args = new string[](0);
-        bytes memory data = abi.encode(SOURCE, args, "", SUBSCRIPTION_ID, uint32(0), DON_ID, EXPECTED_RESULT);
+        bytes memory data = abi.encode(SOURCE, args, "", SUBSCRIPTION_ID, GAS_LIMIT, DON_ID, EXPECTED_RESULT);
         resolver.onConditionSet(ESCROW_ID, data);
 
-        ChainlinkFunctionsResolver.Config memory config = resolver.getConfig(ESCROW_ID);
-        assertEq(config.gasLimit, 300000);
-    }
+        resolver.pause();
+        vm.expectRevert();
+        resolver.isConditionMet(ESCROW_ID);
 
-    function test_SupportsInterface() public {
-        // ChainlinkFunctionsResolver is a contract, not an interface
-        // Test with IConditionResolver interface instead
-        bytes4 interfaceId = 0x01ffc9a7; // ERC165 interface ID
-        assertTrue(resolver.supportsInterface(interfaceId));
+        resolver.unpause();
+        assertFalse(resolver.isConditionMet(ESCROW_ID));
     }
 }

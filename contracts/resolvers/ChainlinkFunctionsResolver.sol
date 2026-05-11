@@ -2,20 +2,22 @@
 pragma solidity ^0.8.24;
 
 import {IConditionResolver} from "../interfaces/IConditionResolver.sol";
-import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {ReineiraAccessControl} from "../access/ReineiraAccessControl.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
 /// @title ChainlinkFunctionsResolver
 /// @notice Condition resolver using Chainlink Functions for custom off-chain computation
 /// @dev Allows escrows to be released based on results from off-chain API calls and computation
-///      executed in a decentralized oracle network (DON)
+///      Inherits ReineiraAccessControl for protocol-gated configuration and compliance pausability.
 ///
 /// ## How It Works
-/// 1. Configure escrow with source code, subscription ID, and expected result
-/// 2. Anyone can trigger the request to execute the off-chain computation
-/// 3. Chainlink DON executes the code and returns the result
-/// 4. If result matches expected value, condition is fulfilled
+/// 1. Deploy resolver with admin address and grant PROTOCOL_ROLE to ConfidentialEscrow
+/// 2. Configure escrow with source code, subscription ID, and expected result
+/// 3. Anyone can trigger the request to execute the off-chain computation
+/// 4. Chainlink DON executes the code and returns the result
+/// 5. If result matches expected value, condition is fulfilled
 ///
 /// ## Use Cases
 /// - Verify API responses (e.g., GitHub stars > 1000, Twitter followers > 10k)
@@ -33,7 +35,7 @@ import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/l
 /// See: https://docs.chain.link/chainlink-functions/supported-networks
 /// Arbitrum Sepolia:
 /// - Router: 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C
-contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC165 {
+contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ReineiraAccessControl {
     using FunctionsRequest for FunctionsRequest.Request;
 
     /// @notice Configuration for each escrow's Chainlink Functions condition
@@ -75,7 +77,9 @@ contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC1
     error EmptySource();
     error InvalidSubscriptionId();
 
-    constructor(address router) FunctionsClient(router) {}
+    /// @param router Chainlink Functions router address.
+    /// @param admin Initial admin address.
+    constructor(address router, address admin) FunctionsClient(router) ReineiraAccessControl(admin) {}
 
     function _getFunctionsStorage() private pure returns (FunctionsStorage storage $) {
         assembly {
@@ -95,7 +99,7 @@ contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC1
     ///      )
     /// @param escrowId The escrow identifier
     /// @param data ABI-encoded configuration
-    function onConditionSet(uint256 escrowId, bytes calldata data) external {
+    function onConditionSet(uint256 escrowId, bytes calldata data) external onlyProtocol whenNotPaused {
         FunctionsStorage storage $ = _getFunctionsStorage();
         if ($.configs[escrowId].configured) revert ConditionAlreadySet();
 
@@ -131,10 +135,11 @@ contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC1
     }
 
     /// @notice Execute the Chainlink Functions request for an escrow
-    /// @dev Anyone can call this to trigger the off-chain computation
+    /// @dev Anyone can call this to trigger the off-chain computation.
+    ///      Reverts when paused.
     /// @param escrowId The escrow identifier
     /// @return requestId The Chainlink Functions request ID
-    function executeRequest(uint256 escrowId) external returns (bytes32 requestId) {
+    function executeRequest(uint256 escrowId) external whenNotPaused returns (bytes32 requestId) {
         FunctionsStorage storage $ = _getFunctionsStorage();
         Config storage config = $.configs[escrowId];
 
@@ -188,7 +193,7 @@ contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC1
     /// @notice Check if the condition is met
     /// @param escrowId The escrow identifier
     /// @return True if the Chainlink Functions result matches the expected value
-    function isConditionMet(uint256 escrowId) external view returns (bool) {
+    function isConditionMet(uint256 escrowId) external view whenNotPaused returns (bool) {
         FunctionsStorage storage $ = _getFunctionsStorage();
         return $.configs[escrowId].fulfilled;
     }
@@ -217,8 +222,10 @@ contract ChainlinkFunctionsResolver is IConditionResolver, FunctionsClient, ERC1
         return $.configs[escrowId].lastRequestId;
     }
 
-    /// @inheritdoc ERC165
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    /// @notice ERC-165 interface detection.
+    /// @param interfaceId Interface identifier.
+    /// @return True if the contract implements the interface.
+    function supportsInterface(bytes4 interfaceId) public view override(AccessControl) returns (bool) {
         return interfaceId == type(IConditionResolver).interfaceId || super.supportsInterface(interfaceId);
     }
 }

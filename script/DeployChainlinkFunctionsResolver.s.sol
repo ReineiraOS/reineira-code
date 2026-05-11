@@ -6,20 +6,27 @@ import {console} from "forge-std/console.sol";
 import {ChainlinkFunctionsResolver} from "../contracts/resolvers/ChainlinkFunctionsResolver.sol";
 
 /// @title DeployChainlinkFunctionsResolver
-/// @notice Deployment script for ChainlinkFunctionsResolver
-/// @dev Run with: forge script script/DeployChainlinkFunctionsResolver.s.sol --rpc-url arbitrum_sepolia --broadcast --verify
+/// @notice Deployment script for ChainlinkFunctionsResolver with role-based access control
+/// @dev Run with: forge script script/DeployChainlinkFunctionsResolver.s.sol --rpc-url arbitrum --broadcast --verify
 contract DeployChainlinkFunctionsResolver is Script {
-    address constant ARBITRUM_SEPOLIA_ROUTER = 0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C;
-    bytes32 constant ARBITRUM_SEPOLIA_DON_ID = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
+    address constant ARBITRUM_FUNCTIONS_ROUTER = 0x97083E831f8f0639C5A9507750e3C5EBAcb3C8e3;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerPrivateKey);
+        address protocolAddress = vm.envOr("PROTOCOL_ADDRESS", deployer);
+        address complianceAddress = vm.envOr("COMPLIANCE_ADDRESS", deployer);
 
         vm.startBroadcast(deployerPrivateKey);
 
-        ChainlinkFunctionsResolver resolver = new ChainlinkFunctionsResolver(ARBITRUM_SEPOLIA_ROUTER);
+        ChainlinkFunctionsResolver resolver = new ChainlinkFunctionsResolver(ARBITRUM_FUNCTIONS_ROUTER, deployer);
+        resolver.grantProtocolRole(protocolAddress);
+        resolver.grantComplianceRole(complianceAddress);
 
         console.log("ChainlinkFunctionsResolver deployed at:", address(resolver));
+        console.log("Admin:", deployer);
+        console.log("Protocol:", protocolAddress);
+        console.log("Compliance:", complianceAddress);
         console.log("");
         console.log("=== Next Steps ===");
         console.log("1. Create a subscription at https://functions.chain.link");
@@ -28,16 +35,7 @@ contract DeployChainlinkFunctionsResolver is Script {
         console.log("   Consumer address:", address(resolver));
         console.log("");
         console.log("=== Network Configuration ===");
-        console.log("Router:", ARBITRUM_SEPOLIA_ROUTER);
-        console.log("DON ID:", vm.toString(ARBITRUM_SEPOLIA_DON_ID));
-        console.log("");
-        console.log("=== Example JavaScript Source ===");
-        console.log("// Fetch GitHub stars");
-        console.log("const response = await Functions.makeHttpRequest({");
-        console.log("  url: 'https://api.github.com/repos/ethereum/solidity'");
-        console.log("});");
-        console.log("const stars = response.data.stargazers_count;");
-        console.log("return Functions.encodeUint256(stars);");
+        console.log("Router:", ARBITRUM_FUNCTIONS_ROUTER);
 
         vm.stopBroadcast();
     }

@@ -12,7 +12,10 @@ contract TimeLockResolverTest is Test {
     uint256 deadline;
 
     function setUp() public {
-        resolver = new TimeLockResolver();
+        resolver = new TimeLockResolver(address(this));
+        // Grant PROTOCOL_ROLE to this test contract so it can call onConditionSet
+        resolver.grantProtocolRole(address(this));
+        resolver.grantComplianceRole(address(this));
         deadline = block.timestamp + 1 days;
     }
 
@@ -70,6 +73,30 @@ contract TimeLockResolverTest is Test {
     function test_SupportsInterface() public view {
         bytes4 resolverInterface = type(IConditionResolver).interfaceId;
         assertTrue(resolver.supportsInterface(resolverInterface));
+    }
+
+    function test_PauseAndUnpause() public {
+        bytes memory data = abi.encode(deadline);
+        resolver.onConditionSet(ESCROW_ID, data);
+
+        // Compliance owner (address(this) by default) can pause
+        resolver.pause();
+
+        // isConditionMet should revert when paused
+        vm.expectRevert();
+        resolver.isConditionMet(ESCROW_ID);
+
+        // Unpause
+        resolver.unpause();
+        assertFalse(resolver.isConditionMet(ESCROW_ID));
+    }
+
+    function test_OnConditionSet_RevertsWhenPaused() public {
+        resolver.pause();
+
+        bytes memory data = abi.encode(deadline);
+        vm.expectRevert();
+        resolver.onConditionSet(ESCROW_ID, data);
     }
 
     function testFuzz_OnConditionSet(uint256 futureDeadline) public {

@@ -65,7 +65,10 @@ contract ChainlinkPriceFeedResolverTest is Test {
     uint8 constant DECIMALS = 8;
 
     function setUp() public {
-        resolver = new ChainlinkPriceFeedResolver();
+        vm.warp(1000000); // Ensure block.timestamp is large enough for staleness tests
+        resolver = new ChainlinkPriceFeedResolver(address(this));
+        resolver.grantProtocolRole(address(this));
+        resolver.grantComplianceRole(address(this));
         mockFeed = new MockAggregator(INITIAL_PRICE, DECIMALS);
     }
 
@@ -171,5 +174,17 @@ contract ChainlinkPriceFeedResolverTest is Test {
 
     function test_SupportsInterface() public view {
         assertTrue(resolver.supportsInterface(type(IOracleConditionResolver).interfaceId));
+    }
+
+    function test_PauseAndUnpause() public {
+        bytes memory data = abi.encode(address(mockFeed), int256(1000), uint8(0), uint256(3600));
+        resolver.onConditionSet(ESCROW_ID, data);
+
+        resolver.pause();
+        vm.expectRevert();
+        resolver.isConditionMet(ESCROW_ID);
+
+        resolver.unpause();
+        assertTrue(resolver.isConditionMet(ESCROW_ID));
     }
 }

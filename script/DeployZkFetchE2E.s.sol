@@ -21,7 +21,7 @@ contract DeployZkFetchE2E is Deploy {
         console2.log("ZkFetchVerifier deployed at:", address(verifier));
 
         // 2. Deploy ReclaimResolver
-        ReclaimResolver resolver = new ReclaimResolver();
+        ReclaimResolver resolver = new ReclaimResolver(msg.sender);
         console2.log("ReclaimResolver deployed at:", address(resolver));
 
         // 3. Deploy SimpleEscrow

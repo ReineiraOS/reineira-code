@@ -112,7 +112,7 @@ abstract contract ChainlinkConditionBase is IOracleConditionResolver, ERC165 {
     }
 
     /// @inheritdoc IConditionResolver
-    function isConditionMet(uint256 escrowId) external view virtual returns (bool) {
+    function isConditionMet(uint256 escrowId) public view virtual returns (bool) {
         ChainlinkStorage storage $ = _getChainlinkStorage();
         if (!$.configs[escrowId].configured) revert ConditionNotConfigured();
 

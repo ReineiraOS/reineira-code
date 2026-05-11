@@ -29,7 +29,7 @@ contract DemoChainlinkEscrows is Script {
 
         // 1. Deploy contracts
         console.log("Step 1: Deploying contracts...");
-        ChainlinkPriceFeedResolver resolver = new ChainlinkPriceFeedResolver();
+        ChainlinkPriceFeedResolver resolver = new ChainlinkPriceFeedResolver(msg.sender);
         SimpleEscrow escrow = new SimpleEscrow();
 
         console.log("Resolver:", address(resolver));

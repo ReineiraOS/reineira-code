@@ -2,13 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {IConditionResolver} from "../interfaces/IConditionResolver.sol";
-import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {ReineiraAccessControl} from "../access/ReineiraAccessControl.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title ReclaimResolver
 /// @notice zkTLS-based condition resolver using Reclaim Protocol
 /// @dev Releases escrow when valid proof of HTTPS endpoint data is submitted via Reclaim Protocol
-/// @dev Note: Uses interface-based integration to avoid pragma version conflicts with Reclaim SDK (0.8.4)
-contract ReclaimResolver is IConditionResolver, ERC165 {
+///      Inherits ReineiraAccessControl for protocol-gated configuration and compliance pausability.
+contract ReclaimResolver is IConditionResolver, ReineiraAccessControl {
     /// @notice Configuration for each escrow's Reclaim condition
     struct Config {
         /// @dev Address of the deployed Reclaim verifier contract
@@ -45,9 +46,13 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
     error ContextAddressMismatch();
     error ContextMessageMismatch();
 
+    /// @param admin Initial admin address.
+    constructor(address admin) ReineiraAccessControl(admin) {}
+
     /// @inheritdoc IConditionResolver
     /// @dev Data format: abi.encode(address reclaimAddress, string expectedProvider, string expectedContextAddress, string expectedContextMessage)
-    function onConditionSet(uint256 escrowId, bytes calldata data) external {
+    ///      Restricted to PROTOCOL_ROLE and blocked when paused.
+    function onConditionSet(uint256 escrowId, bytes calldata data) external onlyProtocol whenNotPaused {
         if (configs[escrowId].reclaimAddress != address(0)) revert ConditionAlreadySet();
 
         (
@@ -75,7 +80,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
     /// @dev The proof must be ABI-encoded as per Reclaim.Proof structure
     /// @param escrowId The escrow identifier
     /// @param proofData ABI-encoded Reclaim.Proof (ClaimInfo + SignedClaim)
-    function submitProof(uint256 escrowId, bytes calldata proofData) external {
+    function submitProof(uint256 escrowId, bytes calldata proofData) external whenNotPaused {
         Config storage config = configs[escrowId];
 
         if (config.fulfilled) revert AlreadyFulfilled();
@@ -145,7 +150,7 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
     }
 
     /// @inheritdoc IConditionResolver
-    function isConditionMet(uint256 escrowId) external view returns (bool) {
+    function isConditionMet(uint256 escrowId) external view whenNotPaused returns (bool) {
         return configs[escrowId].fulfilled;
     }
 
@@ -201,8 +206,10 @@ contract ReclaimResolver is IConditionResolver, ERC165 {
         return string(result);
     }
 
-    /// @inheritdoc ERC165
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    /// @notice ERC-165 interface detection.
+    /// @param interfaceId Interface identifier.
+    /// @return True if the contract implements the interface.
+    function supportsInterface(bytes4 interfaceId) public view override(AccessControl) returns (bool) {
         return interfaceId == type(IConditionResolver).interfaceId || super.supportsInterface(interfaceId);
     }
 }

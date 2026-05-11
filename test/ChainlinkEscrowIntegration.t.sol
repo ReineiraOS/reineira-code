@@ -28,12 +28,15 @@ contract ChainlinkEscrowIntegrationTest is Test {
         console.log("\n=== DEPLOYING CONTRACTS ===");
 
         // Deploy resolver
-        resolver = new ChainlinkPriceFeedResolver();
+        resolver = new ChainlinkPriceFeedResolver(address(this));
         console.log("Resolver deployed:", address(resolver));
 
         // Deploy escrow
         escrow = new SimpleEscrow();
         console.log("Escrow deployed:", address(escrow));
+
+        // Grant PROTOCOL_ROLE to SimpleEscrow so it can call onConditionSet
+        resolver.grantProtocolRole(address(escrow));
     }
 
     /// @notice Full lifecycle test: Create escrow, check condition, release funds

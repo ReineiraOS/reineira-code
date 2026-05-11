@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {IConditionResolver} from "../interfaces/IConditionResolver.sol";
+import {IOracleConditionResolver} from "../interfaces/IOracleConditionResolver.sol";
 import {ChainlinkConditionBase} from "./ChainlinkConditionBase.sol";
+import {ReineiraAccessControl} from "../access/ReineiraAccessControl.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /// @title ChainlinkPriceFeedResolver
 /// @notice Concrete resolver using Chainlink Price Feeds for condition evaluation
-/// @dev Allows escrows to be released based on price feed thresholds
-///      Example: Release funds when ETH/USD > $2000
+/// @dev Allows escrows to be released based on price feed thresholds.
+///      Inherits ReineiraAccessControl for protocol-gated configuration and compliance pausability.
 ///
 /// ## Usage Example
-/// 1. Deploy this resolver
-/// 2. Configure escrow with: abi.encode(feedAddress, threshold, op, maxStaleness)
-///    - feedAddress: Chainlink price feed address (e.g., ETH/USD on Arbitrum Sepolia)
+/// 1. Deploy this resolver with an admin address
+/// 2. Grant PROTOCOL_ROLE to the ConfidentialEscrow contract
+/// 3. Configure escrow with: abi.encode(feedAddress, threshold, op, maxStaleness)
+///    - feedAddress: Chainlink price feed address (e.g., ETH/USD on Arbitrum)
 ///    - threshold: Price threshold in feed decimals (e.g., 2000 * 10^8 for $2000)
 ///    - op: Comparison operator (0=GT, 1=GTE, 2=LT, 3=LTE, 4=EQ, 5=NEQ)
 ///    - maxStaleness: Maximum age of data in seconds (e.g., 3600 for 1 hour)
@@ -22,7 +27,10 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 /// Arbitrum Sepolia Example:
 /// - ETH/USD: 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165
 /// - BTC/USD: 0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69
-contract ChainlinkPriceFeedResolver is ChainlinkConditionBase {
+/// Arbitrum Mainnet:
+/// - ETH/USD: 0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612
+/// - BTC/USD: 0x6ce185860a4963106506C203335A2910413708e9
+contract ChainlinkPriceFeedResolver is ChainlinkConditionBase, ReineiraAccessControl {
     /// @custom:storage-location erc7201:reineira.storage.ChainlinkPriceFeedResolver
     struct PriceFeedStorage {
         mapping(uint256 => address) feedAddresses;
@@ -36,6 +44,9 @@ contract ChainlinkPriceFeedResolver is ChainlinkConditionBase {
 
     error InvalidFeedAddress();
 
+    /// @param admin Initial admin address.
+    constructor(address admin) ReineiraAccessControl(admin) {}
+
     function _getPriceFeedStorage() private pure returns (PriceFeedStorage storage $) {
         assembly {
             $.slot := PRICE_FEED_STORAGE_LOCATION
@@ -44,11 +55,8 @@ contract ChainlinkPriceFeedResolver is ChainlinkConditionBase {
 
     /// @notice Configure the price feed condition for an escrow
     /// @dev Data format: abi.encode(address feedAddress, int256 threshold, uint8 op, uint256 maxStaleness)
-    ///      feedAddress: Chainlink price feed contract address
-    ///      threshold: Price threshold in feed decimals
-    ///      op: Comparison operator (0-5)
-    ///      maxStaleness: Maximum data age in seconds
-    function onConditionSet(uint256 escrowId, bytes calldata data) external {
+    ///      Restricted to PROTOCOL_ROLE and blocked when paused.
+    function onConditionSet(uint256 escrowId, bytes calldata data) external onlyProtocol whenNotPaused {
         (address feedAddress, int256 threshold, uint8 op, uint256 maxStaleness) =
             abi.decode(data, (address, int256, uint8, uint256));
 
@@ -66,6 +74,13 @@ contract ChainlinkPriceFeedResolver is ChainlinkConditionBase {
     /// @notice Get the price feed address for an escrow
     /// @param escrowId The escrow identifier
     /// @return The Chainlink price feed address
+
+    /// @inheritdoc ChainlinkConditionBase
+    /// @dev Reverts when paused.
+    function isConditionMet(uint256 escrowId) public view override whenNotPaused returns (bool) {
+        return super.isConditionMet(escrowId);
+    }
+
     function getFeedAddress(uint256 escrowId) external view returns (address) {
         PriceFeedStorage storage $ = _getPriceFeedStorage();
         return $.feedAddresses[escrowId];
@@ -75,5 +90,20 @@ contract ChainlinkPriceFeedResolver is ChainlinkConditionBase {
     function _getAggregator(uint256 escrowId) internal view override returns (AggregatorV3Interface) {
         PriceFeedStorage storage $ = _getPriceFeedStorage();
         return AggregatorV3Interface($.feedAddresses[escrowId]);
+    }
+
+    /// @notice ERC-165 interface detection.
+    /// @param interfaceId Interface identifier.
+    /// @return True if the contract implements the interface.
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ChainlinkConditionBase, AccessControl)
+        returns (bool)
+    {
+        return interfaceId == type(IConditionResolver).interfaceId
+            || interfaceId == type(IOracleConditionResolver).interfaceId
+            || ChainlinkConditionBase.supportsInterface(interfaceId)
+            || AccessControl.supportsInterface(interfaceId);
     }
 }

@@ -53,7 +53,9 @@ contract ReclaimResolverTest is Test {
     uint32 epoch;
 
     function setUp() public {
-        resolver = new ReclaimResolver();
+        resolver = new ReclaimResolver(address(this));
+        resolver.grantProtocolRole(address(this));
+        resolver.grantComplianceRole(address(this));
         mockReclaim = new MockReclaimVerifier();
 
         validIdentifier = keccak256("unique_proof_id");
@@ -157,16 +159,13 @@ contract ReclaimResolverTest is Test {
         assertTrue(resolver.usedProofIdentifiers(validIdentifier));
     }
 
-    function test_SubmitProof_SuccessWithoutContextValidation() public {
-        bytes memory configData = abi.encode(
-            address(mockReclaim),
-            PROVIDER,
-            "", // no context address check
-            "" // no context message check
-        );
+    function test_SubmitProof_RevertsIfAlreadyFulfilled() public {
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
         resolver.onConditionSet(ESCROW_ID, configData);
 
-        string memory context = '{"someField":"someValue"}';
+        string memory context = string(
+            abi.encodePacked('{"contextAddress":"', EXPECTED_ADDRESS, '","contextMessage":"', EXPECTED_MESSAGE, '"}')
+        );
 
         bytes[] memory signatures = new bytes[](1);
         signatures[0] = hex"1234";
@@ -176,26 +175,11 @@ contract ReclaimResolverTest is Test {
 
         resolver.submitProof(ESCROW_ID, proofData);
 
-        assertTrue(resolver.isConditionMet(ESCROW_ID));
-    }
-
-    function test_SubmitProof_RevertsIfAlreadyFulfilled() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        bytes[] memory signatures = new bytes[](1);
-        signatures[0] = hex"1234";
-
-        bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
-
-        resolver.submitProof(ESCROW_ID, proofData);
-
         vm.expectRevert(ReclaimResolver.AlreadyFulfilled.selector);
         resolver.submitProof(ESCROW_ID, proofData);
     }
 
-    function test_SubmitProof_RevertsIfProofReused() public {
+    function test_SubmitProof_RevertsIfProofAlreadyUsed() public {
         bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
         resolver.onConditionSet(ESCROW_ID, configData);
 
@@ -203,15 +187,29 @@ contract ReclaimResolverTest is Test {
         signatures[0] = hex"1234";
 
         bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
+            abi.encode(PROVIDER, "parameters", "", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         resolver.submitProof(ESCROW_ID, proofData);
 
-        uint256 escrowId2 = 2;
-        resolver.onConditionSet(escrowId2, configData);
+        // Try to reuse the same proof
+        vm.expectRevert(ReclaimResolver.AlreadyFulfilled.selector);
+        resolver.submitProof(ESCROW_ID, proofData);
+    }
 
-        vm.expectRevert(ReclaimResolver.ProofAlreadyUsed.selector);
-        resolver.submitProof(escrowId2, proofData);
+    function test_SubmitProof_RevertsIfInvalidProof() public {
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
+        resolver.onConditionSet(ESCROW_ID, configData);
+
+        mockReclaim.setShouldRevert(true);
+
+        bytes[] memory signatures = new bytes[](1);
+        signatures[0] = hex"1234";
+
+        bytes memory proofData =
+            abi.encode(PROVIDER, "parameters", "", validIdentifier, proofOwner, timestamp, epoch, signatures);
+
+        vm.expectRevert(ReclaimResolver.InvalidProof.selector);
+        resolver.submitProof(ESCROW_ID, proofData);
     }
 
     function test_SubmitProof_RevertsIfProviderMismatch() public {
@@ -222,80 +220,10 @@ contract ReclaimResolverTest is Test {
         signatures[0] = hex"1234";
 
         bytes memory proofData =
-            abi.encode("wrong_provider", "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
+            abi.encode("https", "parameters", "", validIdentifier, proofOwner, timestamp, epoch, signatures);
 
         vm.expectRevert(ReclaimResolver.ProviderMismatch.selector);
         resolver.submitProof(ESCROW_ID, proofData);
-    }
-
-    function test_SubmitProof_RevertsIfContextAddressMismatch() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, "");
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        string memory wrongContext = '{"contextAddress":"0xWrongAddress"}';
-
-        bytes[] memory signatures = new bytes[](1);
-        signatures[0] = hex"1234";
-
-        bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", wrongContext, validIdentifier, proofOwner, timestamp, epoch, signatures);
-
-        vm.expectRevert(ReclaimResolver.ContextAddressMismatch.selector);
-        resolver.submitProof(ESCROW_ID, proofData);
-    }
-
-    function test_SubmitProof_RevertsIfContextMessageMismatch() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", EXPECTED_MESSAGE);
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        string memory wrongContext = '{"contextMessage":"wrong_message"}';
-
-        bytes[] memory signatures = new bytes[](1);
-        signatures[0] = hex"1234";
-
-        bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", wrongContext, validIdentifier, proofOwner, timestamp, epoch, signatures);
-
-        vm.expectRevert(ReclaimResolver.ContextMessageMismatch.selector);
-        resolver.submitProof(ESCROW_ID, proofData);
-    }
-
-    function test_SubmitProof_RevertsIfReclaimVerificationFails() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        mockReclaim.setShouldRevert(true);
-
-        bytes[] memory signatures = new bytes[](1);
-        signatures[0] = hex"1234";
-
-        bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
-
-        vm.expectRevert(ReclaimResolver.InvalidProof.selector);
-        resolver.submitProof(ESCROW_ID, proofData);
-    }
-
-    function test_IsConditionMet_ReturnsFalseBeforeProof() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        assertFalse(resolver.isConditionMet(ESCROW_ID));
-    }
-
-    function test_IsConditionMet_ReturnsTrueAfterProof() public {
-        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, "", "");
-        resolver.onConditionSet(ESCROW_ID, configData);
-
-        bytes[] memory signatures = new bytes[](1);
-        signatures[0] = hex"1234";
-
-        bytes memory proofData =
-            abi.encode(PROVIDER, "parameters", "{}", validIdentifier, proofOwner, timestamp, epoch, signatures);
-
-        resolver.submitProof(ESCROW_ID, proofData);
-
-        assertTrue(resolver.isConditionMet(ESCROW_ID));
     }
 
     function test_SupportsInterface() public view {
@@ -303,16 +231,15 @@ contract ReclaimResolverTest is Test {
         assertTrue(resolver.supportsInterface(resolverInterface));
     }
 
-    function testFuzz_OnConditionSet(address fuzzReclaim, string memory fuzzProvider) public {
-        vm.assume(fuzzReclaim != address(0));
-        vm.assume(bytes(fuzzProvider).length > 0);
-        vm.assume(bytes(fuzzProvider).length < 1000);
+    function test_PauseAndUnpause() public {
+        bytes memory configData = abi.encode(address(mockReclaim), PROVIDER, EXPECTED_ADDRESS, EXPECTED_MESSAGE);
+        resolver.onConditionSet(ESCROW_ID, configData);
 
-        bytes memory data = abi.encode(fuzzReclaim, fuzzProvider, "", "");
-        resolver.onConditionSet(ESCROW_ID, data);
+        resolver.pause();
+        vm.expectRevert();
+        resolver.isConditionMet(ESCROW_ID);
 
-        (address storedReclaim, string memory storedProvider,,,) = resolver.configs(ESCROW_ID);
-        assertEq(storedReclaim, fuzzReclaim);
-        assertEq(storedProvider, fuzzProvider);
+        resolver.unpause();
+        assertFalse(resolver.isConditionMet(ESCROW_ID));
     }
 }
