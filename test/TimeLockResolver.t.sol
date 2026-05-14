@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
-import {TimeLockResolver} from "../contracts/resolvers/TimeLockResolver.sol";
+import {TimeLockResolver} from "../contracts/resolvers/TimelockResolver.sol";
 import {IConditionResolver} from "../contracts/interfaces/IConditionResolver.sol";
 
 contract TimeLockResolverTest is Test {

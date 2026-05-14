@@ -90,12 +90,74 @@ node scripts/zkFetchE2ETest.js
 
 **Note:** The on-chain verifier is currently a mock for testing. Real cryptographic verification happens off-chain in step 2. Production deployments should use Reclaim's production verifier contract.
 
+## Chainlink Integration (Live on Testnet)
+
+Full integration with **Chainlink Data Feeds** for price-based escrow conditions is deployed and tested on **Arbitrum Sepolia**:
+
+**Deployed Contracts:**
+- **ChainlinkPriceFeedResolver:** `0x49DDce54E0dCe041fE2ab3590515b640289cE2de`
+- **Demo Escrow System:** `0xf2e42be96af8cf1c8f08d981c2d84d1e3c5a3b3a`
+
+### Quick Start
+
+**1. Deploy the resolver:**
+```bash
+forge script script/DeployChainlinkPriceFeedResolver.s.sol --rpc-url arbitrum_sepolia --broadcast --verify
+```
+
+**2. Create an escrow with Chainlink condition:**
+```solidity
+// Release when ETH/USD > $2000
+bytes memory resolverData = abi.encode(
+    0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165, // ETH/USD feed on Arbitrum Sepolia
+    2000 * 10**8,                                 // $2000 threshold
+    0,                                            // GreaterThan operator
+    3600                                          // 1 hour max staleness
+);
+
+uint256 escrowId = escrow.createEscrow{value: 1 ether}(
+    beneficiary,
+    0x49DDce54E0dCe041fE2ab3590515b640289cE2de, // Resolver address
+    resolverData
+);
+```
+
+**3. Release when condition is met:**
+```bash
+cast send <escrow_address> "release(uint256)" <escrow_id> --rpc-url arbitrum_sepolia --private-key $PRIVATE_KEY
+```
+
+### Features
+
+✅ **Real Chainlink Price Feeds** - ETH/USD, BTC/USD, LINK/USD on Arbitrum Sepolia  
+✅ **All Comparison Operators** - >, >=, <, <=, ==, !=  
+✅ **Staleness Protection** - Configurable max data age  
+✅ **Multiple Feeds** - Each escrow can use different price feeds  
+✅ **Comprehensive Tests** - 28 tests covering all condition outcomes  
+
+### Run Tests
+
+```bash
+# Unit tests with mocks
+forge test --match-contract ChainlinkPriceFeedResolver
+
+# Integration tests with real Chainlink data
+forge test --match-contract ChainlinkEscrowIntegration --fork-url $ARBITRUM_SEPOLIA_RPC_URL
+
+# Comprehensive condition tests (all operators)
+forge test --match-contract ChainlinkConditions --fork-url $ARBITRUM_SEPOLIA_RPC_URL
+```
+
+**See [docs/CHAINLINK_INTEGRATION.md](docs/CHAINLINK_INTEGRATION.md) for complete guide**
+
 ## Current Phase
 
 **Status:** Active development with working testnet deployment
 
 **What's working:**
 - ✅ Reclaim zkFetch E2E test on Arbitrum Sepolia
+- ✅ Chainlink Data Feeds integration (price oracles)
+- ✅ Chainlink Functions integration (custom off-chain computation)
 - ✅ Pluggable condition resolver architecture
 - ✅ Base abstractions for oracle, prediction market, and zkTLS resolvers
 
@@ -118,6 +180,7 @@ node scripts/zkFetchE2ETest.js
 | SDK       | @reineira-os/sdk ^0.1.0 |
 | cofhejs   | ^0.5.0 (migrating)      |
 | Reclaim   | @reclaimprotocol/zk-fetch ^0.8.0 |
+| Chainlink | @chainlink/contracts ^1.3.0 |
 | Node.js   | 18+                     |
 
 ## Documentation

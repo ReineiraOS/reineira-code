@@ -21,8 +21,8 @@ const RECLAIM_APP_ID = process.env.RECLAIM_APP_ID;
 const RECLAIM_APP_SECRET = process.env.RECLAIM_APP_SECRET;
 
 // Deployed contract addresses from DeployZkFetchE2E
-const RESOLVER_ADDRESS = '0x05E856c5436Bd7b1f00a51f2D5154ea5b80f5D2c';
-const ESCROW_ADDRESS = '0xd5F872B590AF61014A17DE9EA6Cd0c6f3208660b';
+const RESOLVER_ADDRESS = '0xc7b41B0Ad8d0F561eDe27fC7C467c1BD8250e792'; // ReclaimResolver on Arbitrum Sepolia
+const ESCROW_ADDRESS = '0xAF4E10197Ed7b823c0ef2716431ADB69aB30Ce0D'; // SimpleEscrow on Arbitrum Sepolia
 const ESCROW_ID = 0;
 
 async function runE2ETest() {
