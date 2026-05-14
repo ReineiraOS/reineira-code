@@ -66,6 +66,48 @@ forge script script/DeployTimeLockResolver.s.sol --rpc-url $ARBITRUM_SEPOLIA_RPC
 forge verify-contract <address> <contract> --chain arbitrum-sepolia --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
+## Reclaim zkFetch E2E Test (Live on Testnet)
+
+A complete end-to-end test of the Reclaim Protocol zkFetch integration is deployed and working on **Arbitrum Sepolia**:
+
+**Deployed Contracts:**
+- **ReclaimResolver:** `0x5f6F022740320c49F3F3868a75599d7fE0ac65c9`
+- **SimpleEscrow:** `0x58eba8b9258907bE0BEeAD6F25D7EEfda9735ff0`
+- **ZkFetchVerifier (Mock):** `0x4a0Bd08E23AdEE060CB3a45C38A01268C6753b4d`
+
+**Run the E2E test:**
+```bash
+# Ensure you have Reclaim credentials in .env
+node scripts/zkFetchE2ETest.js
+```
+
+**What it does:**
+1. Generates real zkTLS proof from GitHub API using Reclaim's zkFetch
+2. Verifies proof cryptographically off-chain using Reclaim SDK
+3. Submits proof to on-chain ReclaimResolver
+4. Releases escrow funds when proof is valid
+5. Demonstrates complete flow from API call → proof → on-chain settlement
+
+**Note:** The on-chain verifier is currently a mock for testing. Real cryptographic verification happens off-chain in step 2. Production deployments should use Reclaim's production verifier contract.
+
+## Current Phase
+
+**Status:** Active development with working testnet deployment
+
+**What's working:**
+- ✅ Reclaim zkFetch E2E test on Arbitrum Sepolia
+- ✅ Pluggable condition resolver architecture
+- ✅ Base abstractions for oracle, prediction market, and zkTLS resolvers
+
+**What's in progress:**
+- 🔄 FHE dependency migration (cofhe v0.4.0 → v0.5.0) - **migration window: April 27, 12:00-15:00 UTC**
+- 🔄 Production-ready concrete resolver implementations
+- 🔄 Additional zkTLS provider integrations (TLSNotary, etc.)
+
+**Known limitations:**
+- FHE-dependent contracts (policies) temporarily excluded from compilation during FHE migration
+- Mock verifier used for on-chain testing (real verification happens off-chain)
+
 ## Compatibility
 
 | Component | Requirement             |
@@ -74,7 +116,8 @@ forge verify-contract <address> <contract> --chain arbitrum-sepolia --etherscan-
 | Solidity  | ^0.8.24                 |
 | Foundry   | Latest                  |
 | SDK       | @reineira-os/sdk ^0.1.0 |
-| cofhejs   | ^0.3.1                  |
+| cofhejs   | ^0.5.0 (migrating)      |
+| Reclaim   | @reclaimprotocol/zk-fetch ^0.8.0 |
 | Node.js   | 18+                     |
 
 ## Documentation
