@@ -107,3 +107,5 @@ jobs:
 
       - name: Run tests
         run: forge test -vvv
+        env:
+          ARBITRUM_SEPOLIA_RPC_URL: https://sepolia-rollup.arbitrum.io/rpc
