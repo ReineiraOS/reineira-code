@@ -77,13 +77,13 @@ contract DeployUnifiedE2E is Script {
         console.log("\n1. CHAINLINK DATA FEEDS:");
         console.log("   - Ready to use immediately");
         console.log("   - Use price feeds above in escrow conditions");
-        
+
         console.log("\n2. CHAINLINK FUNCTIONS:");
         console.log("   - Create subscription at https://functions.chain.link");
         console.log("   - Fund subscription with LINK tokens");
         console.log("   - Add consumer:", address(functionsResolver));
         console.log("   - Get LINK from https://faucets.chain.link/arbitrum-sepolia");
-        
+
         console.log("\n3. RECLAIM PROTOCOL:");
         console.log("   - Get Reclaim verifier address from https://dev.reclaimprotocol.org/");
         console.log("   - Or deploy your own verifier contract");

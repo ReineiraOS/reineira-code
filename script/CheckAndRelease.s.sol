@@ -10,11 +10,10 @@ import {SimpleEscrow} from "../contracts/test/SimpleEscrow.sol";
 /// @notice Check if Chainlink Functions fulfilled and release escrow
 /// @dev Run with: forge script script/CheckAndRelease.s.sol --rpc-url arbitrum_sepolia --broadcast
 contract CheckAndRelease is Script {
-    ChainlinkFunctionsResolver constant functionsResolver = 
+    ChainlinkFunctionsResolver constant functionsResolver =
         ChainlinkFunctionsResolver(0xEaec0247A15103845af146f8700826940A4B42A3);
-    
-    SimpleEscrow constant escrow = 
-        SimpleEscrow(0xAF4E10197Ed7b823c0ef2716431ADB69aB30Ce0D);
+
+    SimpleEscrow constant escrow = SimpleEscrow(0xAF4E10197Ed7b823c0ef2716431ADB69aB30Ce0D);
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -26,7 +25,7 @@ contract CheckAndRelease is Script {
         console.log("Escrow ID:", escrowId);
 
         ChainlinkFunctionsResolver.Config memory config = functionsResolver.getConfig(escrowId);
-        
+
         console.log("\nStatus:");
         console.log("  Configured:", config.configured);
         console.log("  Fulfilled:", config.fulfilled);
@@ -37,11 +36,11 @@ contract CheckAndRelease is Script {
 
         if (config.fulfilled && conditionMet) {
             console.log("\nCondition is met! Releasing escrow...");
-            
+
             vm.startBroadcast(deployerPrivateKey);
             escrow.release(escrowId);
             vm.stopBroadcast();
-            
+
             console.log("Escrow released successfully!");
             console.log("\nView on Arbiscan:");
             console.log("https://sepolia.arbiscan.io/address/", address(escrow));

@@ -15,10 +15,10 @@ interface IFunctionsRouter {
 /// @dev Run with: forge script script/CreateChainlinkFunctionsEscrowOnly.s.sol --rpc-url arbitrum_sepolia --broadcast
 contract CreateChainlinkFunctionsEscrowOnly is Script {
     SimpleEscrow constant escrow = SimpleEscrow(0xAF4E10197Ed7b823c0ef2716431ADB69aB30Ce0D);
-    ChainlinkFunctionsResolver constant functionsResolver = 
+    ChainlinkFunctionsResolver constant functionsResolver =
         ChainlinkFunctionsResolver(0xEaec0247A15103845af146f8700826940A4B42A3);
     IFunctionsRouter constant router = IFunctionsRouter(0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C);
-    
+
     bytes32 constant DON_ID = 0x66756e2d617262697472756d2d7365706f6c69612d3100000000000000000000;
     uint64 constant SUBSCRIPTION_ID = 568;
 
@@ -43,22 +43,11 @@ contract CreateChainlinkFunctionsEscrowOnly is Script {
 
         // Create escrow
         string memory source = "return Functions.encodeUint256(42);";
-        bytes memory resolverData = abi.encode(
-            source,
-            new string[](0),
-            "",
-            SUBSCRIPTION_ID,
-            uint32(300000),
-            DON_ID,
-            abi.encode(uint256(42))
-        );
+        bytes memory resolverData =
+            abi.encode(source, new string[](0), "", SUBSCRIPTION_ID, uint32(300000), DON_ID, abi.encode(uint256(42)));
 
         console.log("\nCreating escrow...");
-        uint256 escrowId = escrow.createEscrow{value: 0.001 ether}(
-            deployer,
-            address(functionsResolver),
-            resolverData
-        );
+        uint256 escrowId = escrow.createEscrow{value: 0.001 ether}(deployer, address(functionsResolver), resolverData);
 
         vm.stopBroadcast();
 

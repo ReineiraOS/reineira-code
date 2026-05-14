@@ -79,7 +79,8 @@ contract UnifiedE2ETest is Test {
         console.log("  Amount:", escrowAmount / 1 ether, "ETH");
 
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(beneficiary, address(priceFeedResolver), resolverData);
+        uint256 escrowId =
+            escrow.createEscrow{value: escrowAmount}(beneficiary, address(priceFeedResolver), resolverData);
         console.log("  Escrow ID:", escrowId);
 
         console.log("\nStep 2: Check condition");
@@ -114,15 +115,8 @@ contract UnifiedE2ETest is Test {
         uint32 gasLimit = 300000;
         bytes memory expectedResult = abi.encode(uint256(42));
 
-        bytes memory resolverData = abi.encode(
-            source,
-            args,
-            encryptedSecretsUrls,
-            subscriptionId,
-            gasLimit,
-            DON_ID,
-            expectedResult
-        );
+        bytes memory resolverData =
+            abi.encode(source, args, encryptedSecretsUrls, subscriptionId, gasLimit, DON_ID, expectedResult);
 
         console.log("Step 1: Create escrow with Chainlink Functions condition");
         console.log("  Source code: return Functions.encodeUint256(42);");
@@ -130,7 +124,8 @@ contract UnifiedE2ETest is Test {
         console.log("  DON ID:", vm.toString(DON_ID));
 
         vm.prank(depositor);
-        uint256 escrowId = escrow.createEscrow{value: escrowAmount}(beneficiary, address(functionsResolver), resolverData);
+        uint256 escrowId =
+            escrow.createEscrow{value: escrowAmount}(beneficiary, address(functionsResolver), resolverData);
         console.log("  Escrow ID:", escrowId);
 
         console.log("\nStep 2: Verify configuration");
@@ -173,12 +168,7 @@ contract UnifiedE2ETest is Test {
         string memory expectedAddress = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
         string memory expectedMessage = "payment_received";
 
-        bytes memory resolverData = abi.encode(
-            address(mockReclaim),
-            provider,
-            expectedAddress,
-            expectedMessage
-        );
+        bytes memory resolverData = abi.encode(address(mockReclaim), provider, expectedAddress, expectedMessage);
 
         console.log("\nStep 1: Create escrow with Reclaim condition");
         console.log("  Provider:", provider);
@@ -190,19 +180,13 @@ contract UnifiedE2ETest is Test {
         console.log("  Escrow ID:", escrowId);
 
         console.log("\nStep 2: Prepare and submit zkTLS proof");
-        
+
         // Set up valid proof
         bytes32 validIdentifier = keccak256("unique_proof_id");
         mockReclaim.setValidIdentifier(validIdentifier, true);
 
         string memory context = string(
-            abi.encodePacked(
-                '{"contextAddress":"',
-                expectedAddress,
-                '","contextMessage":"',
-                expectedMessage,
-                '"}'
-            )
+            abi.encodePacked('{"contextAddress":"', expectedAddress, '","contextMessage":"', expectedMessage, '"}')
         );
 
         bytes[] memory signatures = new bytes[](1);
@@ -252,10 +236,7 @@ contract UnifiedE2ETest is Test {
         AggregatorV3Interface feed = AggregatorV3Interface(ETH_USD_FEED);
         (, int256 currentPrice,,,) = feed.latestRoundData();
         bytes memory data1 = abi.encode(
-            ETH_USD_FEED,
-            currentPrice - (100 * 10 ** 8),
-            uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
-            3600
+            ETH_USD_FEED, currentPrice - (100 * 10 ** 8), uint8(IOracleConditionResolver.ComparisonOp.GreaterThan), 3600
         );
         vm.prank(depositor);
         uint256 escrow1 = escrow.createEscrow{value: 1 ether}(beneficiary, address(priceFeedResolver), data1);
@@ -300,7 +281,8 @@ contract UnifiedE2ETest is Test {
         mockReclaim.setValidIdentifier(validId, true);
         bytes[] memory sigs = new bytes[](1);
         sigs[0] = hex"abcd";
-        bytes memory proof = abi.encode("http", "params", "{}", validId, address(0x456), uint32(block.timestamp), uint32(1), sigs);
+        bytes memory proof =
+            abi.encode("http", "params", "{}", validId, address(0x456), uint32(block.timestamp), uint32(1), sigs);
         reclaimResolver.submitProof(escrow3, proof);
         escrow.release(escrow3);
         console.log("[OK] Escrow 3 (Reclaim) released");

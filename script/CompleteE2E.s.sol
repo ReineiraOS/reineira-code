@@ -16,12 +16,11 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 contract CompleteE2E is Script {
     // Deployed contracts
     SimpleEscrow constant escrow = SimpleEscrow(0xAF4E10197Ed7b823c0ef2716431ADB69aB30Ce0D);
-    ChainlinkPriceFeedResolver constant priceFeedResolver = 
+    ChainlinkPriceFeedResolver constant priceFeedResolver =
         ChainlinkPriceFeedResolver(0x23D3A5984043E9bF04D796b65DF67a687163Ce65);
-    ChainlinkFunctionsResolver constant functionsResolver = 
+    ChainlinkFunctionsResolver constant functionsResolver =
         ChainlinkFunctionsResolver(0xEaec0247A15103845af146f8700826940A4B42A3);
-    ReclaimResolver constant reclaimResolver = 
-        ReclaimResolver(0xc7b41B0Ad8d0F561eDe27fC7C467c1BD8250e792);
+    ReclaimResolver constant reclaimResolver = ReclaimResolver(0xc7b41B0Ad8d0F561eDe27fC7C467c1BD8250e792);
 
     // Chainlink config
     address constant ETH_USD_FEED = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
@@ -52,7 +51,7 @@ contract CompleteE2E is Script {
         // Test 1: Chainlink Data Feeds
         console.log("\n=== TEST 1: CHAINLINK DATA FEEDS ===");
         dataFeedEscrowId = testChainlinkDataFeeds(deployer);
-        
+
         // Test 2: Chainlink Functions
         console.log("\n=== TEST 2: CHAINLINK FUNCTIONS ===");
         functionsEscrowId = testChainlinkFunctions(deployer);
@@ -72,19 +71,11 @@ contract CompleteE2E is Script {
         console.log("Current ETH/USD: $", uint256(currentPrice) / 10 ** 8);
 
         int256 threshold = currentPrice - (100 * 10 ** 8);
-        bytes memory resolverData = abi.encode(
-            ETH_USD_FEED,
-            threshold,
-            uint8(IOracleConditionResolver.ComparisonOp.GreaterThan),
-            3600
-        );
+        bytes memory resolverData =
+            abi.encode(ETH_USD_FEED, threshold, uint8(IOracleConditionResolver.ComparisonOp.GreaterThan), 3600);
 
         console.log("Creating escrow: ETH/USD > $", uint256(threshold) / 10 ** 8);
-        escrowId = escrow.createEscrow{value: 0.001 ether}(
-            beneficiary,
-            address(priceFeedResolver),
-            resolverData
-        );
+        escrowId = escrow.createEscrow{value: 0.001 ether}(beneficiary, address(priceFeedResolver), resolverData);
         console.log("Escrow ID:", escrowId);
 
         bool conditionMet = escrow.isConditionMet(escrowId);
@@ -100,23 +91,12 @@ contract CompleteE2E is Script {
 
     function testChainlinkFunctions(address beneficiary) internal returns (uint256 escrowId) {
         string memory source = "return Functions.encodeUint256(42);";
-        bytes memory resolverData = abi.encode(
-            source,
-            new string[](0),
-            "",
-            uint64(123),
-            uint32(300000),
-            DON_ID,
-            abi.encode(uint256(42))
-        );
+        bytes memory resolverData =
+            abi.encode(source, new string[](0), "", uint64(123), uint32(300000), DON_ID, abi.encode(uint256(42)));
 
         console.log("Creating escrow with Functions DON");
         console.log("Source: return Functions.encodeUint256(42);");
-        escrowId = escrow.createEscrow{value: 0.001 ether}(
-            beneficiary,
-            address(functionsResolver),
-            resolverData
-        );
+        escrowId = escrow.createEscrow{value: 0.001 ether}(beneficiary, address(functionsResolver), resolverData);
         console.log("Escrow ID:", escrowId);
         console.log("Status: CONFIGURED (needs subscription)");
 
@@ -128,33 +108,18 @@ contract CompleteE2E is Script {
         string memory expectedAddress = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
         string memory expectedMessage = "payment_received";
 
-        bytes memory resolverData = abi.encode(
-            verifier,
-            provider,
-            expectedAddress,
-            expectedMessage
-        );
+        bytes memory resolverData = abi.encode(verifier, provider, expectedAddress, expectedMessage);
 
         console.log("Creating escrow with Reclaim zkTLS");
         console.log("Provider:", provider);
-        escrowId = escrow.createEscrow{value: 0.001 ether}(
-            beneficiary,
-            address(reclaimResolver),
-            resolverData
-        );
+        escrowId = escrow.createEscrow{value: 0.001 ether}(beneficiary, address(reclaimResolver), resolverData);
         console.log("Escrow ID:", escrowId);
 
         // Submit proof
         MockReclaimVerifier(verifier).setValidIdentifier(keccak256("test_proof"), true);
-        
+
         string memory context = string(
-            abi.encodePacked(
-                '{"contextAddress":"',
-                expectedAddress,
-                '","contextMessage":"',
-                expectedMessage,
-                '"}'
-            )
+            abi.encodePacked('{"contextAddress":"', expectedAddress, '","contextMessage":"', expectedMessage, '"}')
         );
 
         bytes[] memory signatures = new bytes[](1);
