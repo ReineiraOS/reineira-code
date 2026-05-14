@@ -156,6 +156,7 @@ contract ChainlinkPriceFeedResolverTest is Test {
 
         assertFalse(resolver.isStale(ESCROW_ID));
 
+        vm.warp(block.timestamp + 10000); // Move time forward
         mockFeed.setUpdatedAt(block.timestamp - 7200);
         assertTrue(resolver.isStale(ESCROW_ID));
     }
@@ -164,6 +165,7 @@ contract ChainlinkPriceFeedResolverTest is Test {
         bytes memory data = abi.encode(address(mockFeed), int256(1000), uint8(0), uint256(3600));
         resolver.onConditionSet(ESCROW_ID, data);
 
+        vm.warp(block.timestamp + 10000); // Move time forward
         mockFeed.setUpdatedAt(block.timestamp - 7200);
 
         assertFalse(resolver.isConditionMet(ESCROW_ID));
