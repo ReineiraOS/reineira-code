@@ -105,7 +105,20 @@ jobs:
           git clone --depth 1 https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades.git
           cd ..
 
-      - name: Run tests
-        run: forge test -vvv
+      - name: Run unit tests
+        run: forge test -vvv --no-match-path "test/*fork*.sol" --no-match-path "test/*Integration*.sol" --no-match-path "test/*deployed*.sol"
+
+      - name: Run fork integration tests
+        run: forge test -vvv --match-path "test/*Integration*.sol" --fork-url https://sepolia-rollup.arbitrum.io/rpc
+        env:
+          ARBITRUM_SEPOLIA_RPC_URL: https://sepolia-rollup.arbitrum.io/rpc
+
+      - name: Run fork tests
+        run: forge test -vvv --match-path "test/*fork*.sol" --fork-url https://sepolia-rollup.arbitrum.io/rpc
+        env:
+          ARBITRUM_SEPOLIA_RPC_URL: https://sepolia-rollup.arbitrum.io/rpc
+
+      - name: Run deployed contract tests
+        run: forge test -vvv --match-path "test/*deployed*.sol" --fork-url https://sepolia-rollup.arbitrum.io/rpc
         env:
           ARBITRUM_SEPOLIA_RPC_URL: https://sepolia-rollup.arbitrum.io/rpc
